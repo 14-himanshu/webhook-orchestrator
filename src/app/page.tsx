@@ -27,9 +27,6 @@ export default async function Dashboard() {
       <BackgroundGrid />
       <AutoRefresh interval={2000} />
       
-      {/* Top Radial Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[400px] opacity-20 pointer-events-none bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-500 via-transparent to-transparent"></div>
-
       <div className="max-w-[85rem] mx-auto px-6 sm:px-8 py-12 space-y-8 relative z-10">
         
         {/* Header Section */}
@@ -40,9 +37,9 @@ export default async function Dashboard() {
           className="flex flex-col md:flex-row md:items-end justify-between gap-6"
         >
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-indigo-500/10 border border-indigo-500/20 mb-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
-              <span className="text-[11px] font-bold text-indigo-400 tracking-widest uppercase">Secured by HMAC-SHA256</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-zinc-800 bg-zinc-900/30 mb-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-zinc-400" />
+              <span className="text-[11px] font-medium text-zinc-400 tracking-wide">Secured by HMAC-SHA256</span>
             </div>
             <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-white">
               Webhook Orchestrator
@@ -52,13 +49,14 @@ export default async function Dashboard() {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3 px-4 py-2 bg-zinc-900/50 backdrop-blur-md rounded-lg border border-white/5 shadow-sm">
-              <div className="relative flex h-2.5 w-2.5 items-center justify-center">
-                <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-emerald-400/60"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+            <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full border border-zinc-800 bg-[#0A0A0A]">
+              <div className="relative flex h-2 w-2 items-center justify-center">
+                <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-zinc-400/50"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-zinc-400"></span>
               </div>
-              <span className="text-xs font-semibold text-emerald-400 tracking-widest uppercase flex items-center gap-1.5">
-                System Operational
+              <span className="text-xs font-medium text-zinc-300 tracking-wide flex items-center gap-1.5">
+                <Activity className="w-3.5 h-3.5 text-zinc-500" />
+                System Active
               </span>
             </div>
           </div>
@@ -70,19 +68,19 @@ export default async function Dashboard() {
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.05 }}
-            className="rounded-xl bg-zinc-900/50 backdrop-blur-md border border-white/5 p-8 flex flex-col justify-between shadow-sm hover:border-white/10 transition-all duration-200 ease-in-out"
+            className="rounded-xl bg-[#0A0A0A] border border-zinc-800 p-8 flex flex-col justify-between hover:border-zinc-700 transition-all duration-200"
           >
             <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 bg-indigo-500/10 rounded-lg border border-indigo-500/20">
-                <Database className="w-4 h-4 text-indigo-400" />
+              <div className="p-2 bg-zinc-900 rounded-lg border border-zinc-800">
+                <Database className="w-4 h-4 text-zinc-300" />
               </div>
-              <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Total Delivered</h2>
+              <h2 className="text-xs font-medium text-zinc-500 uppercase tracking-widest">Total Delivered</h2>
             </div>
             <div className="flex items-baseline gap-3">
-              <span className="text-5xl font-semibold tracking-tight text-white">
+              <span className="text-5xl font-medium tracking-tight text-white">
                 <AnimatedCounter value={successCount} />
               </span>
-              <span className="text-indigo-400 font-medium flex items-center gap-1 text-xs uppercase tracking-wider">
+              <span className="text-zinc-500 font-medium flex items-center gap-1 text-xs uppercase tracking-wider">
                 <Activity className="w-3.5 h-3.5" /> Live
               </span>
             </div>
@@ -92,19 +90,19 @@ export default async function Dashboard() {
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
-            className="rounded-xl bg-zinc-900/50 backdrop-blur-md border border-white/5 p-8 flex flex-col justify-between shadow-sm hover:border-white/10 transition-all duration-200 ease-in-out"
+            className="rounded-xl bg-[#0A0A0A] border border-zinc-800 p-8 flex flex-col justify-between hover:border-zinc-700 transition-all duration-200"
           >
             <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 bg-rose-500/10 rounded-lg border border-rose-500/20">
-                <Server className="w-4 h-4 text-rose-400" />
+              <div className="p-2 bg-zinc-900 rounded-lg border border-zinc-800">
+                <Server className="w-4 h-4 text-zinc-300" />
               </div>
-              <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Dead Letters</h2>
+              <h2 className="text-xs font-medium text-zinc-500 uppercase tracking-widest">Dead Letters</h2>
             </div>
             <div className="flex items-baseline gap-3">
-              <span className="text-5xl font-semibold tracking-tight text-white tabular-nums">
+              <span className="text-5xl font-medium tracking-tight text-white tabular-nums">
                 {failedCount.toLocaleString()}
               </span>
-              <span className="text-rose-400 font-medium flex items-center gap-1 text-xs uppercase tracking-wider">
+              <span className="text-zinc-500 font-medium flex items-center gap-1 text-xs uppercase tracking-wider">
                 <XCircle className="w-3.5 h-3.5" /> Failed
               </span>
             </div>
@@ -133,30 +131,30 @@ export default async function Dashboard() {
           >
             
             {/* Processing Queue */}
-            <div className="rounded-xl bg-zinc-900/50 backdrop-blur-md border border-white/5 overflow-hidden shadow-sm flex flex-col flex-1 min-h-[300px]">
-              <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01] flex items-center shrink-0">
-                <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-widest flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-indigo-400" />
+            <div className="rounded-xl bg-[#0A0A0A] border border-zinc-800 overflow-hidden shadow-sm flex flex-col flex-1 min-h-[300px]">
+              <div className="px-6 py-5 border-b border-zinc-800 bg-zinc-900/50 flex items-center shrink-0">
+                <h3 className="text-xs font-medium text-zinc-300 uppercase tracking-widest flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-zinc-400" />
                   Processing Queue
                 </h3>
               </div>
               <div className="overflow-auto flex-1 max-h-[350px]">
                 <table className="w-full text-left">
-                  <thead className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest border-b border-white/5 bg-black/20 sticky top-0 z-10">
+                  <thead className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest border-b border-zinc-800 bg-zinc-900 sticky top-0 z-10">
                     <tr>
                       <th scope="col" className="px-6 py-4">Job ID</th>
                       <th scope="col" className="px-6 py-4">Target URL</th>
                       <th scope="col" className="px-6 py-4 text-right">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-zinc-800/50">
                     {processingJobs.length === 0 ? (
                       <tr>
                         <td colSpan={3} className="px-6 py-16 text-center text-zinc-500">
                           <div className="flex flex-col items-center justify-center">
-                            <Activity className="w-6 h-6 text-zinc-600 mb-3" />
+                            <Activity className="w-5 h-5 text-zinc-600 mb-3" />
                             <p className="text-sm font-medium text-zinc-400">No active jobs</p>
-                            <p className="text-[11px] mt-1 text-zinc-500">The processing queue is empty.</p>
+                            <p className="text-[11px] mt-1 text-zinc-600">The processing queue is empty.</p>
                           </div>
                         </td>
                       </tr>
@@ -184,8 +182,8 @@ export default async function Dashboard() {
                             {job.data.url}
                           </td>
                           <td className="px-6 py-4 text-right">
-                            <div className="inline-flex items-center justify-end gap-2 text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase">
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <div className="inline-flex items-center justify-end gap-2 text-zinc-300 bg-zinc-800 border border-zinc-700 px-3 py-1.5 rounded-full text-[10px] font-medium tracking-widest uppercase">
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-400" />
                               Processing
                             </div>
                           </td>
@@ -198,30 +196,30 @@ export default async function Dashboard() {
             </div>
 
             {/* Action Required Queue */}
-            <div className="rounded-xl bg-zinc-900/50 backdrop-blur-md border border-white/5 overflow-hidden shadow-sm flex flex-col flex-1 min-h-[300px]">
-              <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01] flex items-center shrink-0">
-                <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-widest flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-amber-500/80" />
+            <div className="rounded-xl bg-[#0A0A0A] border border-zinc-800 overflow-hidden shadow-sm flex flex-col flex-1 min-h-[300px]">
+              <div className="px-6 py-5 border-b border-zinc-800 bg-zinc-900/50 flex items-center shrink-0">
+                <h3 className="text-xs font-medium text-zinc-300 uppercase tracking-widest flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-zinc-400" />
                   Action Required Queue
                 </h3>
               </div>
               <div className="overflow-auto flex-1 max-h-[350px]">
                 <table className="w-full text-left">
-                  <thead className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest border-b border-white/5 bg-black/20 sticky top-0 z-10">
+                  <thead className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest border-b border-zinc-800 bg-zinc-900 sticky top-0 z-10">
                     <tr>
                       <th scope="col" className="px-6 py-4">Job ID</th>
                       <th scope="col" className="px-6 py-4">Target URL</th>
                       <th scope="col" className="px-6 py-4 text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-zinc-800/50">
                     {recentDLQ.length === 0 ? (
                       <tr>
                         <td colSpan={3} className="px-6 py-16 text-center text-zinc-500">
                           <div className="flex flex-col items-center justify-center">
-                            <CheckCircle2 className="w-6 h-6 text-emerald-500/80 mb-3" />
-                            <p className="text-sm font-medium text-zinc-300">Queue is clear</p>
-                            <p className="text-[11px] mt-1 text-zinc-500">No failed webhooks require attention.</p>
+                            <CheckCircle2 className="w-5 h-5 text-zinc-600 mb-3" />
+                            <p className="text-sm font-medium text-zinc-400">Queue is clear</p>
+                            <p className="text-[11px] mt-1 text-zinc-600">No failed webhooks require attention.</p>
                           </div>
                         </td>
                       </tr>

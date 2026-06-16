@@ -69,17 +69,11 @@ export default function WebhookSimulator() {
   };
 
   return (
-    <div className="bg-zinc-900/50 backdrop-blur-md border border-white/5 rounded-xl overflow-hidden relative shadow-sm h-full flex flex-col">
-      {/* Console Header */}
-      <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01] flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <Terminal className="w-4 h-4 text-indigo-400" />
-          <h2 className="text-xs font-semibold text-zinc-300 uppercase tracking-widest">Developer Console</h2>
-        </div>
-        <div className="flex gap-1.5 opacity-60">
-          <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
-          <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
-          <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+    <div className="flex flex-col h-full bg-[#0A0A0A] border border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+      <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/50">
+        <div className="flex items-center gap-2">
+          <Terminal className="w-4 h-4 text-zinc-400" />
+          <h2 className="text-xs font-medium text-zinc-300 uppercase tracking-widest">Developer Console</h2>
         </div>
       </div>
 
@@ -87,25 +81,25 @@ export default function WebhookSimulator() {
       <div className="p-6 flex-1 flex flex-col">
         <form onSubmit={handleFireWebhook} className="space-y-6 flex flex-col h-full">
           <div>
-            <label htmlFor="targetUrl" className="block text-[10px] font-semibold text-zinc-500 mb-2 uppercase tracking-widest">
+            <label htmlFor="targetUrl" className="block text-[10px] font-medium text-zinc-500 mb-2 uppercase tracking-widest">
               Target URL
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 font-mono text-sm">POST</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 font-mono text-sm">POST</span>
               <input
                 id="targetUrl"
                 type="url"
                 required
                 value={targetUrl}
                 onChange={(e) => setTargetUrl(e.target.value)}
-                className="w-full pl-14 pr-4 py-3 rounded-lg border border-white/5 bg-black/20 text-zinc-200 focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all duration-200 ease-in-out font-mono text-xs placeholder-zinc-700"
+                className="w-full pl-14 pr-4 py-3 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-200 focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 outline-none transition-all duration-200 ease-in-out font-mono text-xs placeholder-zinc-700"
                 placeholder="https://your-api.com/webhooks"
               />
             </div>
           </div>
 
           <div className="flex-1 flex flex-col">
-            <label htmlFor="payload" className="block text-[10px] font-semibold text-zinc-500 mb-2 uppercase tracking-widest">
+            <label htmlFor="payload" className="block text-[10px] font-medium text-zinc-500 mb-2 uppercase tracking-widest">
               JSON Payload
             </label>
             <textarea
@@ -113,7 +107,7 @@ export default function WebhookSimulator() {
               required
               value={payloadStr}
               onChange={(e) => setPayloadStr(e.target.value)}
-              className="w-full h-full min-h-[160px] px-4 py-4 rounded-lg border border-white/5 bg-black/20 text-emerald-400/90 font-mono text-xs focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all duration-200 ease-in-out resize-none leading-relaxed"
+              className="w-full h-full min-h-[160px] px-4 py-4 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-300 font-mono text-xs focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 outline-none transition-all duration-200 ease-in-out resize-none leading-relaxed"
               spellCheck="false"
             />
           </div>
@@ -125,9 +119,9 @@ export default function WebhookSimulator() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}
                 transition={{ duration: 0.15 }}
-                className="flex items-start gap-3 text-sm text-rose-400 bg-rose-500/10 border border-rose-500/20 p-4 rounded-lg shrink-0"
+                className="flex items-start gap-3 text-sm text-zinc-300 bg-rose-500/10 border border-rose-500/20 p-4 rounded-lg shrink-0"
               >
-                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-rose-500" />
                 <p className="leading-relaxed font-mono text-[11px]">{message}</p>
               </motion.div>
             )}
@@ -138,9 +132,9 @@ export default function WebhookSimulator() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}
                 transition={{ duration: 0.15 }}
-                className="flex items-start gap-3 text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-lg shrink-0"
+                className="flex items-start gap-3 text-sm text-zinc-300 bg-zinc-800/50 border border-zinc-700 p-4 rounded-lg shrink-0"
               >
-                <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5 text-zinc-400" />
                 <p className="leading-relaxed font-mono text-[11px]">{message}</p>
               </motion.div>
             )}
@@ -151,9 +145,9 @@ export default function WebhookSimulator() {
               type="submit"
               disabled={status === 'loading'}
               className={clsx(
-                "w-full flex items-center justify-center gap-2 px-6 py-3 font-semibold text-white rounded-lg transition-all duration-200 ease-in-out border border-indigo-500/50",
-                "bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99]",
-                "disabled:opacity-50 disabled:pointer-events-none"
+                "w-full flex items-center justify-center gap-2 px-6 py-3 font-medium text-black rounded-lg transition-all duration-200 ease-in-out border border-transparent",
+                "bg-white hover:bg-zinc-200 active:scale-[0.99]",
+                "disabled:opacity-50 disabled:pointer-events-none disabled:bg-zinc-800 disabled:text-zinc-500"
               )}
             >
               {status === 'loading' ? (
