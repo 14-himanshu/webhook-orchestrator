@@ -10,6 +10,8 @@ import * as motion from 'framer-motion/client';
 import { webhookQueue } from '@/queue/config';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
 export default async function Dashboard() {
   const successCount = await prisma.webhookLog.count();
@@ -78,7 +80,7 @@ export default async function Dashboard() {
             </div>
             <div className="flex items-baseline gap-3">
               <span className="text-5xl font-medium tracking-tight text-white">
-                <AnimatedCounter value={successCount} />
+                {successCount.toLocaleString()}
               </span>
               <span className="text-zinc-500 font-medium flex items-center gap-1 text-xs uppercase tracking-wider">
                 <Activity className="w-3.5 h-3.5" /> Live
