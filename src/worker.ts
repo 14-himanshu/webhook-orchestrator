@@ -5,7 +5,7 @@ import Redis from 'ioredis';
 import * as http from 'http';
 
 const prisma = new PrismaClient({
-  accelerateUrl: process.env.DATABASE_URL,
+  accelerateUrl: process.env.DATABASE_URL || 'prisma+postgres://accelerate.prisma-data.net/?api_key=dummy',
 });
 
 // Connection settings for Redis. In production, these should come from environment variables.
