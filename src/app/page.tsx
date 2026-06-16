@@ -2,7 +2,8 @@ import prisma from '@/lib/prisma';
 import ReplayButton from '@/app/components/ReplayButton';
 import WebhookSimulator from '@/app/components/WebhookSimulator';
 import BackgroundGrid from '@/app/components/BackgroundGrid';
-import { ShieldCheck, Activity, CheckCircle2, XCircle, AlertCircle, Database, Server, Radio } from 'lucide-react';
+import AnimatedCounter from '@/app/components/AnimatedCounter';
+import { ShieldCheck, Activity, CheckCircle2, XCircle, AlertCircle, Database, Server } from 'lucide-react';
 import * as motion from 'framer-motion/client';
 
 export const dynamic = 'force-dynamic';
@@ -44,6 +45,8 @@ export default async function Dashboard() {
             </p>
           </div>
           <div className="flex items-center gap-4">
+            <WebhookSimulator />
+            
             <div className="flex items-center gap-3 px-4 py-2 bg-zinc-900/50 backdrop-blur-md rounded-lg border border-white/5 shadow-sm">
               <div className="relative flex h-2.5 w-2.5 items-center justify-center">
                 <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-emerald-400/60"></span>
@@ -71,7 +74,9 @@ export default async function Dashboard() {
               <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Total Delivered</h2>
             </div>
             <div className="flex items-baseline gap-3">
-              <span className="text-5xl font-semibold tracking-tight text-white tabular-nums">{successCount.toLocaleString()}</span>
+              <span className="text-5xl font-semibold tracking-tight text-white">
+                <AnimatedCounter value={successCount} />
+              </span>
               <span className="text-indigo-400 font-medium flex items-center gap-1 text-xs uppercase tracking-wider">
                 <Activity className="w-3.5 h-3.5" /> Live
               </span>
@@ -91,7 +96,9 @@ export default async function Dashboard() {
               <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Dead Letters</h2>
             </div>
             <div className="flex items-baseline gap-3">
-              <span className="text-5xl font-semibold tracking-tight text-white tabular-nums">{failedCount.toLocaleString()}</span>
+              <span className="text-5xl font-semibold tracking-tight text-white tabular-nums">
+                {failedCount.toLocaleString()}
+              </span>
               <span className="text-rose-400 font-medium flex items-center gap-1 text-xs uppercase tracking-wider">
                 <XCircle className="w-3.5 h-3.5" /> Failed
               </span>
@@ -135,11 +142,16 @@ export default async function Dashboard() {
                 ) : (
                   recentDLQ.map((dlq, index) => (
                     <motion.tr 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2, delay: 0.2 + (index * 0.05) }}
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ 
+                        opacity: { duration: 0.2, delay: 0.2 + (index * 0.05) },
+                        layout: { type: "spring", stiffness: 300, damping: 30 }
+                      }}
                       key={dlq.id} 
-                      className="hover:bg-white/[0.02] transition-all duration-200 ease-in-out group"
+                      className="hover:bg-white/[0.02] transition-colors duration-200 ease-in-out group"
                     >
                       <td className="px-6 py-5 font-mono text-[13px] text-zinc-400">
                         {dlq.jobId}
@@ -161,15 +173,6 @@ export default async function Dashboard() {
             </table>
           </div>
         </motion.section>
-
-        {/* Simulator Row (Full Width) */}
-        <motion.div 
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-        >
-          <WebhookSimulator />
-        </motion.div>
 
       </div>
     </main>
