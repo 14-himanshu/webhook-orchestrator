@@ -3,6 +3,8 @@ import ReplayButton from '@/app/components/ReplayButton';
 import WebhookSimulator from '@/app/components/WebhookSimulator';
 import BackgroundGrid from '@/app/components/BackgroundGrid';
 import AnimatedCounter from '@/app/components/AnimatedCounter';
+import AutoRefresh from '@/app/components/AutoRefresh';
+import ClientDate from '@/app/components/ClientDate';
 import { ShieldCheck, Activity, CheckCircle2, XCircle, AlertCircle, Database, Server } from 'lucide-react';
 import * as motion from 'framer-motion/client';
 
@@ -19,6 +21,7 @@ export default async function Dashboard() {
   return (
     <main className="min-h-screen font-sans selection:bg-indigo-500/30 relative text-zinc-300">
       <BackgroundGrid />
+      <AutoRefresh />
       
       {/* Top Radial Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[400px] opacity-20 pointer-events-none bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-500 via-transparent to-transparent"></div>
@@ -130,9 +133,9 @@ export default async function Dashboard() {
                 Action Required Queue
               </h3>
             </div>
-            <div className="overflow-x-auto flex-1">
+            <div className="overflow-auto flex-1 max-h-[500px]">
               <table className="w-full text-left">
-                <thead className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest border-b border-white/5 bg-black/20">
+                <thead className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest border-b border-white/5 bg-black/20 sticky top-0 z-10">
                   <tr>
                     <th scope="col" className="px-6 py-4">Job ID</th>
                     <th scope="col" className="px-6 py-4">Target URL</th>
@@ -166,7 +169,9 @@ export default async function Dashboard() {
                       >
                         <td className="px-6 py-5 font-mono text-[13px] text-zinc-400">
                           {dlq.jobId}
-                          <div className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">{dlq.failedAt.toLocaleString()}</div>
+                          <div className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">
+                            <ClientDate date={dlq.failedAt} />
+                          </div>
                         </td>
                         <td className="px-6 py-5 text-zinc-200 font-mono text-[13px] max-w-[16rem] truncate" title={dlq.targetUrl}>
                           {dlq.targetUrl}

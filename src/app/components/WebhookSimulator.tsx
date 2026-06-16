@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function WebhookSimulator() {
   const router = useRouter();
   
-  const [targetUrl, setTargetUrl] = useState('https://httpstat.us/500');
+  const [targetUrl, setTargetUrl] = useState('https://jsonplaceholder.typicode.com/posts');
   const [payloadStr, setPayloadStr] = useState('{\n  "event": "test_ping",\n  "timestamp": "' + new Date().toISOString() + '"\n}');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
