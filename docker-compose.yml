@@ -30,7 +30,8 @@ services:
   web:
     build:
       context: .
-      target: web
+      target: dev
+    command: npm run dev
     ports:
       - "3000:3000"
     environment:
@@ -42,11 +43,23 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src
+        - action: sync
+          path: ./public
+          target: /app/public
+        - action: rebuild
+          path: package.json
+        - action: rebuild
+          path: prisma/schema.prisma
 
   worker:
     build:
       context: .
-      target: worker
+      target: dev
     environment:
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/webhooks_db
       - REDIS_HOST=redis
@@ -56,10 +69,17 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    # Run prisma db push or migrate deploy before starting worker
-    # We can do this in a separate command or use db push inline for development
     command: >
-      sh -c "npx prisma db push && npx tsx src/worker.ts"
+      sh -c "npx prisma db push && npm run dev:worker"
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src
+        - action: rebuild
+          path: package.json
+        - action: rebuild
+          path: prisma/schema.prisma
 
 volumes:
   postgres_data:

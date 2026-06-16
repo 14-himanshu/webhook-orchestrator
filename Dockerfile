@@ -21,6 +21,16 @@ RUN npx prisma generate
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
+# Development runner stage
+FROM base AS dev
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npx prisma generate
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
+
+
 # Web runner stage (Next.js)
 FROM base AS web
 WORKDIR /app
