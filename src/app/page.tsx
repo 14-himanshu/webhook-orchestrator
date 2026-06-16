@@ -16,24 +16,24 @@ export default async function Dashboard() {
   });
 
   return (
-    <main className="min-h-screen font-sans selection:bg-indigo-500/30 relative">
+    <main className="min-h-screen font-sans selection:bg-indigo-500/30 relative text-slate-300">
       <BackgroundGrid />
       
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 py-12 space-y-12">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 py-12 space-y-8">
         
         {/* Hero Section / Header */}
         <motion.header 
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8"
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-4"
         >
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 mb-2">
               <ShieldCheck className="w-4 h-4 text-indigo-400" />
               <span className="text-xs font-semibold text-indigo-400 tracking-wide uppercase">Secured by HMAC-SHA256</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-200 to-white">
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white">
               Webhook Orchestrator
             </h1>
             <p className="text-slate-400 text-lg max-w-xl font-light">
@@ -45,7 +45,7 @@ export default async function Dashboard() {
             {/* Redesigned System Operational Badge */}
             <motion.div 
               whileHover={{ scale: 1.02 }}
-              className="flex items-center gap-3 px-4 py-2 bg-slate-900/50 backdrop-blur-md rounded-full border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.1)]"
+              className="flex items-center gap-3 px-4 py-2 bg-white/[0.02] backdrop-blur-md rounded-full border border-white/[0.05]"
             >
               <div className="relative flex h-2.5 w-2.5 items-center justify-center">
                 <span className="animate-ping absolute inline-flex h-4 w-4 rounded-full bg-emerald-400/60"></span>
@@ -63,13 +63,12 @@ export default async function Dashboard() {
         {/* Metrics Grid */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="relative group rounded-3xl bg-[#111113]/80 backdrop-blur-xl border border-white/5 p-8 overflow-hidden shadow-2xl hover:border-indigo-500/30 transition-all duration-500"
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="relative group rounded-2xl bg-[#0d0d12] border border-white/[0.05] p-8 overflow-hidden shadow-lg hover:border-indigo-500/30 transition-all duration-300"
           >
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent"></div>
-            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
               <CheckCircle2 className="w-40 h-40 text-indigo-500" />
             </div>
             <div className="relative z-10">
@@ -77,11 +76,11 @@ export default async function Dashboard() {
                 <div className="p-2.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
                   <Database className="w-5 h-5 text-indigo-400" />
                 </div>
-                <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest">Delivered Webhooks</h2>
+                <h2 className="text-sm font-medium text-slate-400 uppercase tracking-widest">Delivered Webhooks</h2>
               </div>
               <div className="flex items-end gap-4">
-                <span className="text-6xl font-black tracking-tighter text-white">{successCount.toLocaleString()}</span>
-                <span className="text-indigo-400 font-medium mb-2 flex items-center gap-1.5 text-sm">
+                <span className="text-5xl font-bold tracking-tight text-white">{successCount.toLocaleString()}</span>
+                <span className="text-indigo-400 font-medium mb-1.5 flex items-center gap-1.5 text-sm">
                   <Activity className="w-4 h-4" /> Live
                 </span>
               </div>
@@ -89,13 +88,12 @@ export default async function Dashboard() {
           </motion.div>
 
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative group rounded-3xl bg-[#111113]/80 backdrop-blur-xl border border-white/5 p-8 overflow-hidden shadow-2xl hover:border-rose-500/30 transition-all duration-500"
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="relative group rounded-2xl bg-[#0d0d12] border border-white/[0.05] p-8 overflow-hidden shadow-lg hover:border-rose-500/30 transition-all duration-300"
           >
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-rose-500/30 to-transparent"></div>
-            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
               <XCircle className="w-40 h-40 text-rose-500" />
             </div>
             <div className="relative z-10">
@@ -103,11 +101,11 @@ export default async function Dashboard() {
                 <div className="p-2.5 bg-rose-500/10 rounded-xl border border-rose-500/20">
                   <Server className="w-5 h-5 text-rose-400" />
                 </div>
-                <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest">Dead Letter Queue</h2>
+                <h2 className="text-sm font-medium text-slate-400 uppercase tracking-widest">Dead Letter Queue</h2>
               </div>
               <div className="flex items-end gap-4">
-                <span className="text-6xl font-black tracking-tighter text-white">{failedCount.toLocaleString()}</span>
-                <span className="text-rose-400 font-medium mb-2 flex items-center gap-1.5 text-sm">
+                <span className="text-5xl font-bold tracking-tight text-white">{failedCount.toLocaleString()}</span>
+                <span className="text-rose-400 font-medium mb-1.5 flex items-center gap-1.5 text-sm">
                   <XCircle className="w-4 h-4" /> Failed
                 </span>
               </div>
@@ -120,9 +118,9 @@ export default async function Dashboard() {
           
           {/* Simulator (Left Column) */}
           <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
             className="lg:col-span-1"
           >
             <WebhookSimulator />
@@ -130,42 +128,41 @@ export default async function Dashboard() {
 
           {/* DLQ Table (Right Columns) */}
           <motion.section 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="lg:col-span-2 relative rounded-3xl bg-[#111113]/80 backdrop-blur-xl border border-white/5 overflow-hidden shadow-2xl"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.4 }}
+            className="lg:col-span-2 relative rounded-2xl bg-[#0d0d12] border border-white/[0.05] overflow-hidden shadow-lg"
           >
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-400/20 to-transparent"></div>
-            <div className="px-8 py-6 border-b border-white/5 flex justify-between items-center bg-black/20">
-              <h3 className="text-lg font-medium text-white flex items-center gap-3">
-                <div className="p-2 bg-amber-500/10 rounded-lg border border-amber-500/20">
+            <div className="px-6 py-4 border-b border-white/[0.05] bg-white/[0.02] flex items-center">
+              <h3 className="text-sm font-medium text-slate-200 flex items-center gap-3 tracking-wide">
+                <div className="flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-amber-500" />
                 </div>
                 Action Required
               </h3>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-base text-left">
-                <thead className="text-xs text-slate-400 uppercase tracking-widest bg-black/40">
+              <table className="w-full text-left">
+                <thead className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest border-b border-white/[0.02]">
                   <tr>
-                    <th scope="col" className="px-8 py-5 font-medium">Job ID</th>
-                    <th scope="col" className="px-8 py-5 font-medium">Target URL</th>
-                    <th scope="col" className="px-8 py-5 font-medium text-right">Action</th>
+                    <th scope="col" className="px-6 py-4">Job ID</th>
+                    <th scope="col" className="px-6 py-4">Target URL</th>
+                    <th scope="col" className="px-6 py-4 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-white/[0.02]">
                   {recentDLQ.length === 0 ? (
                     <tr>
-                      <td colSpan={3} className="px-8 py-24 text-center text-slate-400">
+                      <td colSpan={3} className="px-6 py-24 text-center text-slate-400">
                         <motion.div 
-                          initial={{ opacity: 0, scale: 0.9 }}
+                          initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           className="flex flex-col items-center justify-center"
                         >
-                          <div className="p-4 bg-emerald-500/10 rounded-full mb-4">
-                            <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+                          <div className="p-3 bg-emerald-500/10 rounded-full mb-4">
+                            <CheckCircle2 className="w-6 h-6 text-emerald-400" />
                           </div>
-                          <p className="text-lg font-medium text-white">Queue is clear</p>
+                          <p className="text-base font-medium text-slate-200">Queue is clear</p>
                           <p className="text-sm mt-1 text-slate-500">No failed webhooks require attention.</p>
                         </motion.div>
                       </td>
@@ -173,23 +170,23 @@ export default async function Dashboard() {
                   ) : (
                     recentDLQ.map((dlq, index) => (
                       <motion.tr 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5 + (index * 0.05) }}
                         key={dlq.id} 
                         className="hover:bg-white/[0.02] transition-colors group"
                       >
-                        <td className="px-8 py-6 font-mono text-sm text-slate-400">
+                        <td className="px-6 py-5 font-mono text-sm text-slate-400">
                           {dlq.jobId}
-                          <div className="text-xs text-slate-500 mt-1">{dlq.failedAt.toLocaleString()}</div>
+                          <div className="text-[11px] text-slate-500 mt-1 uppercase tracking-wider">{dlq.failedAt.toLocaleString()}</div>
                         </td>
-                        <td className="px-8 py-6 text-slate-200 font-medium max-w-[12rem] truncate" title={dlq.targetUrl}>
+                        <td className="px-6 py-5 text-slate-200 font-medium max-w-[12rem] truncate" title={dlq.targetUrl}>
                           {dlq.targetUrl}
                           <div className="text-rose-400 font-mono text-xs truncate mt-1" title={dlq.errorReason}>
                             {dlq.errorReason}
                           </div>
                         </td>
-                        <td className="px-8 py-6 text-right">
+                        <td className="px-6 py-5 text-right">
                           <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
                             <ReplayButton dlqId={dlq.id} />
                           </div>

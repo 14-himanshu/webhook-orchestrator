@@ -8,22 +8,22 @@ export default function BackgroundGrid() {
       {/* Subtle Animated Gradient Orbs */}
       <motion.div
         animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.15, 0.25, 0.15],
+          scale: [1, 1.05, 1],
+          opacity: [0.03, 0.06, 0.03],
           rotate: [0, 90, 0]
         }}
-        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-        className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-600/30 blur-[120px]"
+        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-500 blur-[120px]"
       />
       
       <motion.div
         animate={{
-          scale: [1, 1.1, 1],
-          opacity: [0.1, 0.2, 0.1],
+          scale: [1, 1.05, 1],
+          opacity: [0.02, 0.04, 0.02],
           rotate: [0, -90, 0]
         }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-rose-600/20 blur-[120px]"
+        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+        className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-rose-500 blur-[120px]"
       />
 
       {/* Premium Vercel/Linear style grid */}

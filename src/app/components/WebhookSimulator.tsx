@@ -68,44 +68,42 @@ export default function WebhookSimulator() {
   };
 
   return (
-    <div className="bg-[#111113]/80 backdrop-blur-xl border border-white/5 rounded-3xl overflow-hidden shadow-2xl relative group">
-      {/* Glossy top highlight */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent"></div>
+    <div className="bg-[#0d0d12] border border-white/[0.05] rounded-2xl overflow-hidden relative group shadow-lg">
       
       {/* Console Header */}
-      <div className="px-6 py-4 border-b border-white/5 bg-black/40 flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-white/[0.05] bg-white/[0.02] flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Terminal className="w-4 h-4 text-indigo-400" />
-          <h2 className="text-sm font-medium text-slate-200 tracking-wide">Developer Console</h2>
+          <h2 className="text-sm font-medium text-slate-200">Developer Console</h2>
         </div>
         <div className="flex gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-white/10"></div>
-          <div className="w-2.5 h-2.5 rounded-full bg-white/10"></div>
-          <div className="w-2.5 h-2.5 rounded-full bg-white/10"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-slate-800"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-slate-800"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-slate-800"></div>
         </div>
       </div>
 
       <form onSubmit={handleFireWebhook} className="p-6 space-y-6">
         <div>
-          <label htmlFor="targetUrl" className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">
+          <label htmlFor="targetUrl" className="block text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">
             Target URL
           </label>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-mono text-sm">POST</span>
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 font-mono text-sm">POST</span>
             <input
               id="targetUrl"
               type="url"
               required
               value={targetUrl}
               onChange={(e) => setTargetUrl(e.target.value)}
-              className="w-full pl-16 pr-4 py-3 rounded-xl border border-white/10 bg-black/50 text-slate-200 focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all font-mono text-sm placeholder-slate-600"
+              className="w-full pl-16 pr-4 py-3 rounded-xl border border-white/[0.05] bg-black/40 text-slate-200 focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all font-mono text-sm placeholder-slate-700"
               placeholder="https://your-api.com/webhooks"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="payload" className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">
+          <label htmlFor="payload" className="block text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">
             JSON Payload
           </label>
           <textarea
@@ -114,7 +112,7 @@ export default function WebhookSimulator() {
             rows={6}
             value={payloadStr}
             onChange={(e) => setPayloadStr(e.target.value)}
-            className="w-full px-4 py-4 rounded-xl border border-white/10 bg-black/50 text-emerald-400/90 font-mono text-sm focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all resize-none leading-relaxed"
+            className="w-full px-4 py-4 rounded-xl border border-white/[0.05] bg-black/40 text-emerald-400/90 font-mono text-sm focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all resize-none leading-relaxed"
             spellCheck="false"
           />
         </div>
@@ -146,24 +144,24 @@ export default function WebhookSimulator() {
         </AnimatePresence>
 
         <motion.button
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.98 }}
           type="submit"
           disabled={status === 'loading'}
           className={clsx(
-            "w-full flex items-center justify-center gap-2 px-6 py-3.5 font-medium text-white rounded-xl transition-all shadow-[0_0_20px_rgba(99,102,241,0.2)]",
-            "bg-indigo-600 hover:bg-indigo-500",
+            "w-full flex items-center justify-center gap-2 px-6 py-3 font-medium text-slate-200 rounded-xl transition-all border border-white/[0.05]",
+            "bg-white/[0.02] hover:bg-white/[0.05] hover:text-white",
             "disabled:opacity-50 disabled:pointer-events-none"
           )}
         >
           {status === 'loading' ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
               <span>Queueing Job...</span>
             </>
           ) : (
             <>
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4 text-indigo-400" />
               <span>Fire Webhook</span>
             </>
           )}
