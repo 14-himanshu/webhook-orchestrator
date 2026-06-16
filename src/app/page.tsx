@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import ReplayButton from '@/app/components/ReplayButton';
+import { Activity, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,9 +33,9 @@ export default async function Dashboard() {
 
         {/* Metrics Grid */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm hover:border-zinc-700 transition-colors relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-5">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm hover:border-zinc-700 transition-colors relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+              <CheckCircle2 className="w-24 h-24" />
             </div>
             <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Successful Deliveries</h2>
             <div className="mt-2 flex items-baseline gap-2">
@@ -43,9 +44,9 @@ export default async function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm hover:border-zinc-700 transition-colors relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-5">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm hover:border-zinc-700 transition-colors relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+              <XCircle className="w-24 h-24" />
             </div>
             <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Dead Letter Queue (DLQ)</h2>
             <div className="mt-2 flex items-baseline gap-2">
@@ -77,9 +78,7 @@ export default async function Dashboard() {
                   <tr>
                     <td colSpan={5} className="px-6 py-12 text-center text-zinc-500">
                       <div className="flex flex-col items-center justify-center">
-                        <svg className="w-8 h-8 mb-3 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
-                        </svg>
+                        <AlertCircle className="w-8 h-8 mb-3 text-zinc-600" />
                         <p>Dead letter queue is empty. System is operating perfectly.</p>
                       </div>
                     </td>
