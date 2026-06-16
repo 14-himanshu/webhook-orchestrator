@@ -23,7 +23,7 @@ export default async function Dashboard() {
       {/* Top Radial Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[400px] opacity-20 pointer-events-none bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-500 via-transparent to-transparent"></div>
 
-      <div className="max-w-[85rem] mx-auto px-6 sm:px-8 py-12 space-y-10 relative z-10">
+      <div className="max-w-[85rem] mx-auto px-6 sm:px-8 py-12 space-y-8 relative z-10">
         
         {/* Header Section */}
         <motion.header 
@@ -45,8 +45,6 @@ export default async function Dashboard() {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <WebhookSimulator />
-            
             <div className="flex items-center gap-3 px-4 py-2 bg-zinc-900/50 backdrop-blur-md rounded-lg border border-white/5 shadow-sm">
               <div className="relative flex h-2.5 w-2.5 items-center justify-center">
                 <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-emerald-400/60"></span>
@@ -59,7 +57,7 @@ export default async function Dashboard() {
           </div>
         </motion.header>
 
-        {/* Metrics Row */}
+        {/* Top Section: Metrics */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <motion.div 
             initial={{ opacity: 0, y: 5 }}
@@ -106,74 +104,88 @@ export default async function Dashboard() {
           </motion.div>
         </section>
 
-        {/* DLQ Table Row (Full Width) */}
-        <motion.section 
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.15 }}
-          className="rounded-xl bg-zinc-900/50 backdrop-blur-md border border-white/5 overflow-hidden shadow-sm"
-        >
-          <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01] flex items-center">
-            <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-widest flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-amber-500/80" />
-              Action Required Queue
-            </h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest border-b border-white/5 bg-black/20">
-                <tr>
-                  <th scope="col" className="px-6 py-4">Job ID</th>
-                  <th scope="col" className="px-6 py-4">Target URL</th>
-                  <th scope="col" className="px-6 py-4 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {recentDLQ.length === 0 ? (
+        {/* Bottom Section: Bento Box Grid */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Left Column (1/3 Width): Developer Console */}
+          <motion.div 
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.15 }}
+            className="lg:col-span-1"
+          >
+            <WebhookSimulator />
+          </motion.div>
+
+          {/* Right Column (2/3 Width): DLQ Table */}
+          <motion.div 
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            className="lg:col-span-2 rounded-xl bg-zinc-900/50 backdrop-blur-md border border-white/5 overflow-hidden shadow-sm flex flex-col h-full"
+          >
+            <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01] flex items-center shrink-0">
+              <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-widest flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-500/80" />
+                Action Required Queue
+              </h3>
+            </div>
+            <div className="overflow-x-auto flex-1">
+              <table className="w-full text-left">
+                <thead className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest border-b border-white/5 bg-black/20">
                   <tr>
-                    <td colSpan={3} className="px-6 py-20 text-center text-zinc-500">
-                      <div className="flex flex-col items-center justify-center">
-                        <CheckCircle2 className="w-6 h-6 text-emerald-500/80 mb-3" />
-                        <p className="text-sm font-medium text-zinc-300">Queue is clear</p>
-                        <p className="text-xs mt-1 text-zinc-500">No failed webhooks require attention.</p>
-                      </div>
-                    </td>
+                    <th scope="col" className="px-6 py-4">Job ID</th>
+                    <th scope="col" className="px-6 py-4">Target URL</th>
+                    <th scope="col" className="px-6 py-4 text-right">Action</th>
                   </tr>
-                ) : (
-                  recentDLQ.map((dlq, index) => (
-                    <motion.tr 
-                      layout
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ 
-                        opacity: { duration: 0.2, delay: 0.2 + (index * 0.05) },
-                        layout: { type: "spring", stiffness: 300, damping: 30 }
-                      }}
-                      key={dlq.id} 
-                      className="hover:bg-white/[0.02] transition-colors duration-200 ease-in-out group"
-                    >
-                      <td className="px-6 py-5 font-mono text-[13px] text-zinc-400">
-                        {dlq.jobId}
-                        <div className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">{dlq.failedAt.toLocaleString()}</div>
-                      </td>
-                      <td className="px-6 py-5 text-zinc-200 font-mono text-[13px] max-w-[20rem] truncate" title={dlq.targetUrl}>
-                        {dlq.targetUrl}
-                        <div className="text-rose-400/80 text-[11px] truncate mt-1 font-sans font-medium" title={dlq.errorReason}>
-                          {dlq.errorReason}
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {recentDLQ.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="px-6 py-20 text-center text-zinc-500">
+                        <div className="flex flex-col items-center justify-center">
+                          <CheckCircle2 className="w-6 h-6 text-emerald-500/80 mb-3" />
+                          <p className="text-sm font-medium text-zinc-300">Queue is clear</p>
+                          <p className="text-xs mt-1 text-zinc-500">No failed webhooks require attention.</p>
                         </div>
                       </td>
-                      <td className="px-6 py-5 text-right">
-                        <ReplayButton dlqId={dlq.id} />
-                      </td>
-                    </motion.tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </motion.section>
-
+                    </tr>
+                  ) : (
+                    recentDLQ.map((dlq, index) => (
+                      <motion.tr 
+                        layout
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ 
+                          opacity: { duration: 0.2, delay: 0.2 + (index * 0.05) },
+                          layout: { type: "spring", stiffness: 300, damping: 30 }
+                        }}
+                        key={dlq.id} 
+                        className="hover:bg-white/[0.02] transition-colors duration-200 ease-in-out group"
+                      >
+                        <td className="px-6 py-5 font-mono text-[13px] text-zinc-400">
+                          {dlq.jobId}
+                          <div className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">{dlq.failedAt.toLocaleString()}</div>
+                        </td>
+                        <td className="px-6 py-5 text-zinc-200 font-mono text-[13px] max-w-[16rem] truncate" title={dlq.targetUrl}>
+                          {dlq.targetUrl}
+                          <div className="text-rose-400/80 text-[11px] truncate mt-1 font-sans font-medium" title={dlq.errorReason}>
+                            {dlq.errorReason}
+                          </div>
+                        </td>
+                        <td className="px-6 py-5 text-right">
+                          <ReplayButton dlqId={dlq.id} />
+                        </td>
+                      </motion.tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+          
+        </section>
       </div>
     </main>
   );
