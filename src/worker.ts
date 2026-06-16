@@ -16,6 +16,7 @@ const connection = {
 interface WebhookJobData {
   url: string;
   body: any;
+  signature?: string;
 }
 
 console.log('Starting BullMQ worker for incoming-webhooks queue...');
@@ -23,16 +24,22 @@ console.log('Starting BullMQ worker for incoming-webhooks queue...');
 const worker = new Worker<WebhookJobData>(
   'incoming-webhooks',
   async (job: Job<WebhookJobData>) => {
-    const { url, body } = job.data;
+    const { url, body, signature } = job.data;
     
     console.log(`[Job ${job.id} | Attempt ${job.attemptsMade + 1}] Processing webhook delivery to ${url}`);
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (signature) {
+      headers['x-webhook-signature'] = signature;
+    }
 
     // Use native fetch API to send a POST request
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(body),
     });
 

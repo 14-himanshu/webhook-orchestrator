@@ -22,6 +22,7 @@ flowchart LR
 ## Key Technical Decisions
 
 - **Decoupled Architecture**: We strictly separated the Ingestion API from the Worker Process. In a typical serverless environment (like Vercel), long-running HTTP connections are killed if they exceed timeout limits. By dumping the payload directly into Redis, the Next.js API instantly returns a `202 Accepted` to the sender, ensuring we never drop an incoming webhook due to timeouts.
+- **Cryptographic Signatures (Security)**: The Ingestion API computes an HMAC SHA-256 signature for every payload using a secret key. The worker securely attaches this signature to the `x-webhook-signature` header on outgoing requests, allowing the target server to mathematically verify the webhook's authenticity and protect against spoofing.
 - **Exponential Backoff**: Downstream services can experience outages. The worker automatically retries failed deliveries up to 5 times, increasing the delay exponentially between each attempt.
 - **Dead Letter Queue (DLQ)**: If a webhook exhausts all 5 of its retry attempts, it is caught and permanently logged into the PostgreSQL Dead Letter Queue. This prevents poison messages from blocking the queue indefinitely while ensuring zero data loss.
 - **Docker Compose Orchestration**: The entire four-tier stack (PostgreSQL, Redis, Next.js Web App, and the Standalone Worker) is containerized and orchestrated via `docker-compose`, mirroring production execution exactly in the local environment.

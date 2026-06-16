@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import ReplayButton from '@/app/components/ReplayButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,12 +69,13 @@ export default async function Dashboard() {
                   <th scope="col" className="px-6 py-4 font-medium tracking-wider">Target URL</th>
                   <th scope="col" className="px-6 py-4 font-medium tracking-wider">Error Reason</th>
                   <th scope="col" className="px-6 py-4 font-medium tracking-wider text-right">Failed At</th>
+                  <th scope="col" className="px-6 py-4 font-medium tracking-wider text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/50">
                 {recentDLQ.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-zinc-500">
+                    <td colSpan={5} className="px-6 py-12 text-center text-zinc-500">
                       <div className="flex flex-col items-center justify-center">
                         <svg className="w-8 h-8 mb-3 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
@@ -96,6 +98,11 @@ export default async function Dashboard() {
                       </td>
                       <td className="px-6 py-4 text-right text-zinc-400 whitespace-nowrap">
                         {dlq.failedAt.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end">
+                          <ReplayButton dlqId={dlq.id} />
+                        </div>
                       </td>
                     </tr>
                   ))
