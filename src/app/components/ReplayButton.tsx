@@ -1,20 +1,37 @@
 'use client';
 
 import { useState } from 'react';
-import { replayWebhook } from '@/app/actions';
 import { RotateCcw, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
+import { useRouter } from 'next/navigation';
 
 export default function ReplayButton({ dlqId }: { dlqId: string }) {
   const [isReplaying, setIsReplaying] = useState(false);
+  const router = useRouter();
 
   const handleReplay = async () => {
     setIsReplaying(true);
-    const result = await replayWebhook(dlqId);
-    if (!result.success) {
-      alert('Failed to replay webhook');
+    
+    try {
+      const res = await fetch('/api/dlq/replay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dlqId }),
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to replay webhook');
+      }
+      
+      // Refresh the current route to update the server components (DLQ table)
+      router.refresh();
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setIsReplaying(false);
     }
-    setIsReplaying(false);
   };
 
   return (
