@@ -226,7 +226,7 @@ export default async function Dashboard() {
                         </td>
                       </tr>
                     ) : (
-                      recentDLQ.map((dlq, index) => (
+                      recentDLQ.map((dlq: any, index: number) => (
                         <motion.tr 
                           layout
                           initial={{ opacity: 0, y: 10 }}
