@@ -2,6 +2,7 @@ import { Worker, Job } from 'bullmq';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { sendCriticalAlert } from './utils/alerting';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/webhooks_db' });
 const adapter = new PrismaPg(pool);
@@ -16,6 +17,7 @@ const connection = {
 interface WebhookJobData {
   url: string;
   body: any;
+  signature?: string;
 }
 
 console.log('Starting BullMQ worker for incoming-webhooks queue...');
@@ -23,16 +25,22 @@ console.log('Starting BullMQ worker for incoming-webhooks queue...');
 const worker = new Worker<WebhookJobData>(
   'incoming-webhooks',
   async (job: Job<WebhookJobData>) => {
-    const { url, body } = job.data;
+    const { url, body, signature } = job.data;
     
     console.log(`[Job ${job.id} | Attempt ${job.attemptsMade + 1}] Processing webhook delivery to ${url}`);
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (signature) {
+      headers['x-webhook-signature'] = signature;
+    }
 
     // Use native fetch API to send a POST request
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(body),
     });
 
@@ -49,6 +57,11 @@ const worker = new Worker<WebhookJobData>(
   },
   {
     connection,
+    // Rate limiter: Max 10 jobs per second globally across all workers
+    limiter: {
+      max: 10,
+      duration: 1000,
+    },
   }
 );
 
@@ -98,6 +111,13 @@ worker.on('failed', async (job: Job | undefined, err: Error) => {
         },
       });
       console.log(`[Job ${job.id}] logged permanent failure to DeadLetterQueue.`);
+
+      // Send proactive critical alert
+      await sendCriticalAlert({
+        jobId: job.id,
+        targetUrl: job.data.url,
+        errorReason: err.message,
+      });
     } catch (dbError) {
       console.error(`[Job ${job.id}] failed to log permanent failure to database:`, dbError);
     }
