@@ -22,6 +22,8 @@ flowchart LR
 ## Key Technical Decisions
 
 - **Decoupled Architecture**: We strictly separated the Ingestion API from the Worker Process. In a typical serverless environment (like Vercel), long-running HTTP connections are killed if they exceed timeout limits. By dumping the payload directly into Redis, the Next.js API instantly returns a `202 Accepted` to the sender, ensuring we never drop an incoming webhook due to timeouts.
+- **Idempotent Processing**: Network glitches happen. If a client sends the exact same webhook twice, the Next.js API checks the `Idempotency-Key` header against Redis. Duplicate payloads are ignored and instantly return a `202 Accepted` without spawning redundant background jobs.
+- **Token-Bucket Rate Limiting**: To protect the ingestion API from DDoS attacks or runaway client scripts, a Redis-backed rate limiter strictly limits clients to a maximum number of requests per minute, returning `HTTP 429 Too Many Requests` if exceeded.
 - **Cryptographic Signatures (Security)**: The Ingestion API computes an HMAC SHA-256 signature for every payload using a secret key. The worker securely attaches this signature to the `x-webhook-signature` header on outgoing requests, allowing the target server to mathematically verify the webhook's authenticity and protect against spoofing.
 - **Exponential Backoff**: Downstream services can experience outages. The worker automatically retries failed deliveries up to 5 times, increasing the delay exponentially between each attempt.
 - **Dead Letter Queue (DLQ)**: If a webhook exhausts all 5 of its retry attempts, it is caught and permanently logged into the PostgreSQL Dead Letter Queue. This prevents poison messages from blocking the queue indefinitely while ensuring zero data loss.
