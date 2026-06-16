@@ -30,6 +30,14 @@ flowchart LR
 - **Dead Letter Queue (DLQ)**: If a webhook exhausts all 5 of its retry attempts, it is caught and permanently logged into the PostgreSQL Dead Letter Queue. This prevents poison messages from blocking the queue indefinitely while ensuring zero data loss.
 - **Docker Compose Orchestration**: The entire four-tier stack (PostgreSQL, Redis, Next.js Web App, and the Standalone Worker) is containerized and orchestrated via `docker-compose`, mirroring production execution exactly in the local environment.
 
+## Deployment Architecture: The Vercel + Worker Split
+
+Deploying this architecture requires understanding the difference between serverless functions and long-running processes.
+
+- **The Frontend & Ingestion API (`/api/webhook`)**: Deploy this to a serverless platform like **Vercel** or **Netlify**. Because it instantly offloads jobs to Redis and returns a 202, it is perfectly suited for serverless execution.
+- **The Worker (`src/worker.ts`)**: Serverless environments kill processes after a few seconds. Do **not** deploy the worker to Vercel. Instead, deploy the standalone worker script to a containerized hosting service that supports long-running background processes, like **Render**, **Railway**, or **Fly.io**.
+- **The Databases**: You cannot use local Docker volumes in production. Provision a managed Redis instance (like **Upstash**) and a managed PostgreSQL database (like **Supabase** or **Neon**). Provide these connection URLs via environment variables to both Vercel and your Worker host.
+
 ## Local Development
 
 The entire stack is containerized for zero-friction local development.
