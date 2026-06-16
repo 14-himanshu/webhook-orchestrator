@@ -68,104 +68,111 @@ export default function WebhookSimulator() {
   };
 
   return (
-    <div className="bg-[#0d0d12] border border-white/[0.05] rounded-2xl overflow-hidden relative group shadow-lg">
+    <div className="bg-[#000000] border border-white/10 rounded-xl overflow-hidden relative shadow-md">
       
       {/* Console Header */}
-      <div className="px-6 py-4 border-b border-white/[0.05] bg-white/[0.02] flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-white/10 bg-[#09090b] flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Terminal className="w-4 h-4 text-indigo-400" />
-          <h2 className="text-sm font-medium text-slate-200">Developer Console</h2>
+          <h2 className="text-xs font-bold text-slate-200 uppercase tracking-widest">Developer Console</h2>
         </div>
-        <div className="flex gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-slate-800"></div>
-          <div className="w-2.5 h-2.5 rounded-full bg-slate-800"></div>
-          <div className="w-2.5 h-2.5 rounded-full bg-slate-800"></div>
+        <div className="flex gap-1.5 opacity-60">
+          <div className="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
         </div>
       </div>
 
-      <form onSubmit={handleFireWebhook} className="p-6 space-y-6">
-        <div>
-          <label htmlFor="targetUrl" className="block text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">
-            Target URL
-          </label>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 font-mono text-sm">POST</span>
-            <input
-              id="targetUrl"
-              type="url"
+      <form onSubmit={handleFireWebhook} className="p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          <div className="space-y-6 flex flex-col">
+            <div>
+              <label htmlFor="targetUrl" className="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-widest">
+                Target URL
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 font-mono text-sm">POST</span>
+                <input
+                  id="targetUrl"
+                  type="url"
+                  required
+                  value={targetUrl}
+                  onChange={(e) => setTargetUrl(e.target.value)}
+                  className="w-full pl-16 pr-4 py-3 rounded-lg border border-white/10 bg-[#040404] text-slate-200 focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all font-mono text-[13px] placeholder-slate-700"
+                  placeholder="https://your-api.com/webhooks"
+                />
+              </div>
+            </div>
+
+            <AnimatePresence mode="popLayout">
+              {status === 'error' && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex items-start gap-3 text-sm text-rose-400 bg-rose-500/10 border border-rose-500/20 p-4 rounded-lg"
+                >
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <p className="leading-relaxed font-mono text-xs">{message}</p>
+                </motion.div>
+              )}
+
+              {status === 'success' && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex items-start gap-3 text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-lg"
+                >
+                  <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <p className="leading-relaxed font-mono text-xs">{message}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+            <div className="mt-auto pt-6">
+              <button
+                type="submit"
+                disabled={status === 'loading'}
+                className={clsx(
+                  "w-full flex items-center justify-center gap-2 px-6 py-3 font-bold text-white rounded-lg transition-all border border-indigo-500/50",
+                  "bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99]",
+                  "disabled:opacity-50 disabled:pointer-events-none"
+                )}
+              >
+                {status === 'loading' ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Queueing Job...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>Fire Webhook Event</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col h-full">
+            <label htmlFor="payload" className="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-widest">
+              JSON Payload
+            </label>
+            <textarea
+              id="payload"
               required
-              value={targetUrl}
-              onChange={(e) => setTargetUrl(e.target.value)}
-              className="w-full pl-16 pr-4 py-3 rounded-xl border border-white/[0.05] bg-black/40 text-slate-200 focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all font-mono text-sm placeholder-slate-700"
-              placeholder="https://your-api.com/webhooks"
+              value={payloadStr}
+              onChange={(e) => setPayloadStr(e.target.value)}
+              className="w-full h-full min-h-[200px] px-4 py-4 rounded-lg border border-white/10 bg-[#040404] text-emerald-400/90 font-mono text-[13px] focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all resize-none leading-relaxed"
+              spellCheck="false"
             />
           </div>
+
         </div>
-
-        <div>
-          <label htmlFor="payload" className="block text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">
-            JSON Payload
-          </label>
-          <textarea
-            id="payload"
-            required
-            rows={6}
-            value={payloadStr}
-            onChange={(e) => setPayloadStr(e.target.value)}
-            className="w-full px-4 py-4 rounded-xl border border-white/[0.05] bg-black/40 text-emerald-400/90 font-mono text-sm focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all resize-none leading-relaxed"
-            spellCheck="false"
-          />
-        </div>
-
-        <AnimatePresence mode="popLayout">
-          {status === 'error' && (
-            <motion.div 
-              initial={{ opacity: 0, y: -10, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: 'auto' }}
-              exit={{ opacity: 0, y: -10, height: 0 }}
-              className="flex items-start gap-3 text-sm text-rose-400 bg-rose-500/10 border border-rose-500/20 p-4 rounded-xl"
-            >
-              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <p className="leading-relaxed font-mono text-xs">{message}</p>
-            </motion.div>
-          )}
-
-          {status === 'success' && (
-            <motion.div 
-              initial={{ opacity: 0, y: -10, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: 'auto' }}
-              exit={{ opacity: 0, y: -10, height: 0 }}
-              className="flex items-start gap-3 text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl"
-            >
-              <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <p className="leading-relaxed font-mono text-xs">{message}</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <motion.button
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.98 }}
-          type="submit"
-          disabled={status === 'loading'}
-          className={clsx(
-            "w-full flex items-center justify-center gap-2 px-6 py-3 font-medium text-slate-200 rounded-xl transition-all border border-white/[0.05]",
-            "bg-white/[0.02] hover:bg-white/[0.05] hover:text-white",
-            "disabled:opacity-50 disabled:pointer-events-none"
-          )}
-        >
-          {status === 'loading' ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
-              <span>Queueing Job...</span>
-            </>
-          ) : (
-            <>
-              <Send className="w-4 h-4 text-indigo-400" />
-              <span>Fire Webhook</span>
-            </>
-          )}
-        </motion.button>
       </form>
     </div>
   );
