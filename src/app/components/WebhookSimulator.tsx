@@ -35,11 +35,10 @@ export default function WebhookSimulator() {
 
     // 2. Fire Request
     try {
-      const res = await fetch('/api/webhook', {
+      const res = await fetch('/api/simulator', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Idempotency-Key': crypto.randomUUID() // Ensure uniqueness for simulator testing
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           targetUrl,

@@ -22,39 +22,65 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
     }
 
-    const body = await request.json();
+    // 2. Strict Idempotency Check
+    const idempotencyKey = request.headers.get('x-idempotency-key');
+    if (!idempotencyKey) {
+      return NextResponse.json({ error: 'x-idempotency-key header is required' }, { status: 400 });
+    }
+
+    const redisIdempotencyKey = `idempotency:${idempotencyKey}`;
+    // Atomic lock: SET key value NX (only if it does not exist) EX (expire in seconds)
+    const isNewRequest = await redis.set(redisIdempotencyKey, '1', 'EX', 86400, 'NX');
+    
+    if (!isNewRequest) {
+      // Key already exists! This means we have already processed this exact webhook payload.
+      // Return success instantly without queuing a duplicate job.
+      return NextResponse.json({ success: true, message: 'Duplicate request ignored (Idempotent)' });
+    }
+
+    // 3. Security: HMAC Signature Verification
+    const signatureHeader = request.headers.get('x-signature');
+    if (!signatureHeader) {
+      return NextResponse.json({ error: 'x-signature header is required' }, { status: 401 });
+    }
+
+    // We must read the raw text for signature verification so we don't break the hash
+    const rawBody = await request.text();
+    const expectedSignature = crypto.createHmac('sha256', WEBHOOK_SECRET).update(rawBody).digest('hex');
+
+    if (signatureHeader !== expectedSignature) {
+      // Invalid signature, possible malicious actor
+      // Delete the idempotency key so a valid request can try again
+      await redis.del(redisIdempotencyKey);
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    }
+
+    // Now safely parse the JSON
+    let body;
+    try {
+      body = JSON.parse(rawBody);
+    } catch (e) {
+      return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 });
+    }
     
     if (!body.targetUrl) {
       return NextResponse.json({ error: 'targetUrl is required' }, { status: 400 });
     }
 
-    // 2. Idempotency Check
-    const idempotencyKey = request.headers.get('Idempotency-Key');
-    if (idempotencyKey) {
-      const redisIdempotencyKey = `idempotency:${idempotencyKey}`;
-      // SETNX: Sets the key if it doesn't exist. Returns 1 if set, 0 if it already existed.
-      const isNewRequest = await redis.setnx(redisIdempotencyKey, '1');
-      if (isNewRequest) {
-        // Expire the idempotency key after 24 hours to clean up memory
-        await redis.expire(redisIdempotencyKey, 60 * 60 * 24);
-      } else {
-        // Key already exists! This means we have already processed this exact webhook payload.
-        // Return success instantly without queuing a duplicate job.
-        return NextResponse.json({ success: true, message: 'Duplicate request ignored (Idempotent)' });
-      }
-    }
-
+    // Generate outgoing signature for the target server to verify
     const payloadString = JSON.stringify(body.payload || {});
-    const signature = crypto.createHmac('sha256', WEBHOOK_SECRET).update(payloadString).digest('hex');
+    const outgoingSignature = crypto.createHmac('sha256', WEBHOOK_SECRET).update(payloadString).digest('hex');
 
+    // 4. Queue the Job
     const job = await webhookQueue.add('deliver-webhook', {
       url: body.targetUrl,
       body: body.payload || {},
-      signature,
+      signature: outgoingSignature,
     });
 
     return NextResponse.json({ success: true, jobId: job.id });
   } catch (error) {
+    console.error('Failed to process webhook ingestion:', error);
     return NextResponse.json({ error: 'Failed to process webhook' }, { status: 500 });
   }
 }

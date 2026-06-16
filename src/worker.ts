@@ -57,6 +57,11 @@ const worker = new Worker<WebhookJobData>(
   },
   {
     connection,
+    // Rate limiter: Max 10 jobs per second globally across all workers
+    limiter: {
+      max: 10,
+      duration: 1000,
+    },
   }
 );
 
