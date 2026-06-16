@@ -31,6 +31,7 @@ interface WebhookJobData {
   url: string;
   body: any;
   signature?: string;
+  userId?: string;
 }
 
 console.log('Starting BullMQ worker for incoming-webhooks queue...');
@@ -90,6 +91,7 @@ worker.on('completed', async (job: Job) => {
         jobId: job.id,
         targetUrl: job.data.url,
         payload: job.data.body || {},
+        userId: job.data.userId || "anonymous",
       },
     });
     console.log(`[Job ${job.id}] logged success to database.`);
@@ -121,6 +123,7 @@ worker.on('failed', async (job: Job | undefined, err: Error) => {
           targetUrl: job.data.url,
           payload: job.data.body || {},
           errorReason: err.message,
+          userId: job.data.userId || "anonymous",
         },
       });
       console.log(`[Job ${job.id}] logged permanent failure to DeadLetterQueue.`);

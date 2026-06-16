@@ -8,21 +8,35 @@ import ClientDate from '@/app/components/ClientDate';
 import { ShieldCheck, Activity, CheckCircle2, XCircle, AlertCircle, Database, Server, Loader2, Clock } from 'lucide-react';
 import * as motion from 'framer-motion/client';
 import { webhookQueue } from '@/queue/config';
+import { auth } from '@clerk/nextjs/server';
+import { UserButton } from '@clerk/nextjs';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
 export default async function Dashboard() {
-  const successCount = await prisma.webhookLog.count();
-  const failedCount = await prisma.deadLetterQueue.count();
+  const { userId } = auth();
+  
+  if (!userId) {
+    return null; // Handled by middleware redirect
+  }
+
+  const successCount = await prisma.webhookLog.count({
+    where: { userId }
+  });
+  const failedCount = await prisma.deadLetterQueue.count({
+    where: { userId }
+  });
   const recentDLQ = await prisma.deadLetterQueue.findMany({
+    where: { userId },
     take: 10,
     orderBy: { failedAt: 'desc' },
   });
 
   // Fetch jobs that are currently pending, active, or waiting for a retry (delayed)
-  const processingJobs = await webhookQueue.getJobs(['active', 'waiting', 'delayed']);
+  const allProcessingJobs = await webhookQueue.getJobs(['active', 'waiting', 'delayed']);
+  const processingJobs = allProcessingJobs.filter(job => job.data.userId === userId);
 
   return (
     <main className="min-h-screen font-sans selection:bg-indigo-500/30 relative text-zinc-300">
@@ -60,6 +74,12 @@ export default async function Dashboard() {
                 <Activity className="w-3.5 h-3.5 text-zinc-500" />
                 System Active
               </span>
+            </div>
+            <div className="flex items-center justify-center border border-zinc-800 bg-[#0A0A0A] rounded-full p-1 w-8 h-8">
+              <UserButton 
+                appearance={{ elements: { userButtonAvatarBox: "w-6 h-6" } }}
+                afterSignOutUrl="/"
+              />
             </div>
           </div>
         </motion.header>
