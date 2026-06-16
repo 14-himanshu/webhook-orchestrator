@@ -8,6 +8,13 @@ const connection = process.env.REDIS_URL
       port: parseInt(process.env.REDIS_PORT || '6379', 10),
     };
 
+if (connection instanceof Redis) {
+  connection.on('error', (err) => {
+    if (process.env.VERCEL || process.env.NODE_ENV === 'production') return;
+    console.error('Redis Queue connection error:', err.message);
+  });
+}
+
 export const webhookQueue = new Queue('incoming-webhooks', {
   connection: connection as any,
   defaultJobOptions: {
