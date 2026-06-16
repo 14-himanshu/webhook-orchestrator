@@ -8,6 +8,7 @@
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:worker\"",
     "build": "next build",
     "start": "next start",
+    "start:worker": "tsx src/worker.ts",
     "lint": "eslint"
   },
   "dependencies": {
