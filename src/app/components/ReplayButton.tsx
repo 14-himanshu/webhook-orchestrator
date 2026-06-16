@@ -39,9 +39,9 @@ export default function ReplayButton({ dlqId }: { dlqId: string }) {
       onClick={handleReplay}
       disabled={isReplaying}
       className={clsx(
-        "flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg transition-all shadow-sm",
-        "border border-white/10 bg-white/5 text-zinc-300",
-        "hover:bg-white/10 hover:text-white hover:border-white/20",
+        "flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl transition-all shadow-sm border",
+        "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200",
+        "dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-750 dark:hover:text-indigo-400 dark:hover:border-slate-600",
         "active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
       )}
     >
