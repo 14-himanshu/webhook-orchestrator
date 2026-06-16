@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma';
 import ReplayButton from '@/app/components/ReplayButton';
 import { ThemeToggle } from '@/app/components/ThemeToggle';
+import WebhookSimulator from '@/app/components/WebhookSimulator';
 import { ShieldCheck, Activity, CheckCircle2, XCircle, AlertCircle, Database, Server } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -86,65 +87,68 @@ export default async function Dashboard() {
           </div>
         </section>
 
-        {/* DLQ Table */}
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-          <div className="px-10 py-8 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
-            <h3 className="text-xl font-semibold text-slate-900 dark:text-white flex items-center gap-3">
-              <AlertCircle className="w-6 h-6 text-amber-500" />
-              Dead Letters Requiring Action
-            </h3>
+        {/* Main Content Grid: Simulator + DLQ Table */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          
+          {/* Simulator (Left Column) */}
+          <div className="lg:col-span-1">
+            <WebhookSimulator />
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-base text-left">
-              <thead className="text-sm text-slate-500 dark:text-slate-400 uppercase tracking-widest bg-slate-50 dark:bg-slate-950/50">
-                <tr>
-                  <th scope="col" className="px-10 py-6 font-medium">Job ID</th>
-                  <th scope="col" className="px-10 py-6 font-medium">Target URL</th>
-                  <th scope="col" className="px-10 py-6 font-medium">Reason</th>
-                  <th scope="col" className="px-10 py-6 font-medium text-right">Failed At</th>
-                  <th scope="col" className="px-10 py-6 font-medium text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {recentDLQ.length === 0 ? (
+
+          {/* DLQ Table (Right Columns) */}
+          <section className="lg:col-span-2 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+            <div className="px-10 py-8 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-white flex items-center gap-3">
+                <AlertCircle className="w-6 h-6 text-amber-500" />
+                Dead Letters Requiring Action
+              </h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-base text-left">
+                <thead className="text-sm text-slate-500 dark:text-slate-400 uppercase tracking-widest bg-slate-50 dark:bg-slate-950/50">
                   <tr>
-                    <td colSpan={5} className="px-10 py-24 text-center text-slate-500 dark:text-slate-400">
-                      <div className="flex flex-col items-center justify-center">
-                        <CheckCircle2 className="w-16 h-16 mb-6 text-slate-300 dark:text-slate-600" />
-                        <p className="text-xl font-medium text-slate-900 dark:text-slate-200">Dead letter queue is completely empty.</p>
-                        <p className="text-base mt-2">All systems are operating perfectly.</p>
-                      </div>
-                    </td>
+                    <th scope="col" className="px-10 py-6 font-medium">Job ID</th>
+                    <th scope="col" className="px-10 py-6 font-medium">Target URL</th>
+                    <th scope="col" className="px-10 py-6 font-medium text-right">Action</th>
                   </tr>
-                ) : (
-                  recentDLQ.map((dlq) => (
-                    <tr key={dlq.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-                      <td className="px-10 py-8 font-mono text-sm text-slate-500 dark:text-slate-400">
-                        {dlq.jobId}
-                      </td>
-                      <td className="px-10 py-8 text-slate-900 dark:text-slate-200 font-medium max-w-xs truncate" title={dlq.targetUrl}>
-                        {dlq.targetUrl}
-                      </td>
-                      <td className="px-10 py-8 text-rose-600 dark:text-rose-400 font-mono text-sm max-w-sm truncate" title={dlq.errorReason}>
-                        <span className="px-3 py-1.5 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-md">
-                          {dlq.errorReason}
-                        </span>
-                      </td>
-                      <td className="px-10 py-8 text-right text-slate-500 dark:text-slate-400 whitespace-nowrap text-sm">
-                        {dlq.failedAt.toLocaleString()}
-                      </td>
-                      <td className="px-10 py-8 text-right">
-                        <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
-                          <ReplayButton dlqId={dlq.id} />
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {recentDLQ.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="px-10 py-24 text-center text-slate-500 dark:text-slate-400">
+                        <div className="flex flex-col items-center justify-center">
+                          <CheckCircle2 className="w-16 h-16 mb-6 text-slate-300 dark:text-slate-600" />
+                          <p className="text-xl font-medium text-slate-900 dark:text-slate-200">Dead letter queue is completely empty.</p>
+                          <p className="text-base mt-2">All systems are operating perfectly.</p>
                         </div>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
+                  ) : (
+                    recentDLQ.map((dlq) => (
+                      <tr key={dlq.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                        <td className="px-10 py-8 font-mono text-sm text-slate-500 dark:text-slate-400">
+                          {dlq.jobId}
+                          <div className="text-xs text-slate-400 mt-1">{dlq.failedAt.toLocaleString()}</div>
+                        </td>
+                        <td className="px-10 py-8 text-slate-900 dark:text-slate-200 font-medium max-w-[12rem] truncate" title={dlq.targetUrl}>
+                          {dlq.targetUrl}
+                          <div className="text-rose-600 dark:text-rose-400 font-mono text-xs truncate mt-1" title={dlq.errorReason}>
+                            {dlq.errorReason}
+                          </div>
+                        </td>
+                        <td className="px-10 py-8 text-right">
+                          <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
+                            <ReplayButton dlqId={dlq.id} />
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
       </div>
     </main>
   );
