@@ -68,18 +68,18 @@ export default function WebhookSimulator() {
   };
 
   return (
-    <div className="bg-[#000000] border border-white/10 rounded-xl overflow-hidden relative shadow-md">
+    <div className="bg-zinc-900/50 backdrop-blur-md border border-white/5 rounded-xl overflow-hidden relative shadow-sm">
       
       {/* Console Header */}
-      <div className="px-6 py-4 border-b border-white/10 bg-[#09090b] flex items-center justify-between">
+      <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01] flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Terminal className="w-4 h-4 text-indigo-400" />
-          <h2 className="text-xs font-bold text-slate-200 uppercase tracking-widest">Developer Console</h2>
+          <h2 className="text-xs font-semibold text-zinc-300 uppercase tracking-widest">Developer Console</h2>
         </div>
         <div className="flex gap-1.5 opacity-60">
-          <div className="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
-          <div className="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
-          <div className="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
         </div>
       </div>
 
@@ -88,18 +88,18 @@ export default function WebhookSimulator() {
           
           <div className="space-y-6 flex flex-col">
             <div>
-              <label htmlFor="targetUrl" className="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-widest">
+              <label htmlFor="targetUrl" className="block text-[10px] font-semibold text-zinc-500 mb-2 uppercase tracking-widest">
                 Target URL
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 font-mono text-sm">POST</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 font-mono text-sm">POST</span>
                 <input
                   id="targetUrl"
                   type="url"
                   required
                   value={targetUrl}
                   onChange={(e) => setTargetUrl(e.target.value)}
-                  className="w-full pl-16 pr-4 py-3 rounded-lg border border-white/10 bg-[#040404] text-slate-200 focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all font-mono text-[13px] placeholder-slate-700"
+                  className="w-full pl-16 pr-4 py-3 rounded-lg border border-white/5 bg-black/20 text-zinc-200 focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all duration-200 ease-in-out font-mono text-[13px] placeholder-zinc-700"
                   placeholder="https://your-api.com/webhooks"
                 />
               </div>
@@ -138,7 +138,7 @@ export default function WebhookSimulator() {
                 type="submit"
                 disabled={status === 'loading'}
                 className={clsx(
-                  "w-full flex items-center justify-center gap-2 px-6 py-3 font-bold text-white rounded-lg transition-all border border-indigo-500/50",
+                  "w-full flex items-center justify-center gap-2 px-6 py-3 font-semibold text-white rounded-lg transition-all duration-200 ease-in-out border border-indigo-500/50",
                   "bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99]",
                   "disabled:opacity-50 disabled:pointer-events-none"
                 )}
@@ -159,7 +159,7 @@ export default function WebhookSimulator() {
           </div>
 
           <div className="flex flex-col h-full">
-            <label htmlFor="payload" className="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-widest">
+            <label htmlFor="payload" className="block text-[10px] font-semibold text-zinc-500 mb-2 uppercase tracking-widest">
               JSON Payload
             </label>
             <textarea
@@ -167,7 +167,7 @@ export default function WebhookSimulator() {
               required
               value={payloadStr}
               onChange={(e) => setPayloadStr(e.target.value)}
-              className="w-full h-full min-h-[200px] px-4 py-4 rounded-lg border border-white/10 bg-[#040404] text-emerald-400/90 font-mono text-[13px] focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all resize-none leading-relaxed"
+              className="w-full h-full min-h-[200px] px-4 py-4 rounded-lg border border-white/5 bg-black/20 text-emerald-400/90 font-mono text-[13px] focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all duration-200 ease-in-out resize-none leading-relaxed"
               spellCheck="false"
             />
           </div>
