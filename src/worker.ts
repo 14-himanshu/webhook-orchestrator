@@ -2,6 +2,7 @@ import { Worker, Job } from 'bullmq';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { sendCriticalAlert } from './utils/alerting';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/webhooks_db' });
 const adapter = new PrismaPg(pool);
@@ -105,6 +106,13 @@ worker.on('failed', async (job: Job | undefined, err: Error) => {
         },
       });
       console.log(`[Job ${job.id}] logged permanent failure to DeadLetterQueue.`);
+
+      // Send proactive critical alert
+      await sendCriticalAlert({
+        jobId: job.id,
+        targetUrl: job.data.url,
+        errorReason: err.message,
+      });
     } catch (dbError) {
       console.error(`[Job ${job.id}] failed to log permanent failure to database:`, dbError);
     }
