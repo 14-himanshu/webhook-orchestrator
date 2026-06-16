@@ -17,6 +17,7 @@ model WebhookLog {
   targetUrl   String
   payload     Json
   deliveredAt DateTime @default(now())
+  userId      String   @default("anonymous")
 }
 
 model DeadLetterQueue {
@@ -26,4 +27,5 @@ model DeadLetterQueue {
   payload     Json
   failedAt    DateTime @default(now())
   errorReason String
+  userId      String   @default("anonymous")
 }

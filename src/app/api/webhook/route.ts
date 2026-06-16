@@ -22,6 +22,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
+    // Require x-user-id so webhooks are mapped to a specific tenant
+    const userId = request.headers.get('x-user-id');
+    if (!userId) {
+      return NextResponse.json({ error: 'x-user-id header is required for multi-tenant mapping' }, { status: 401 });
+    }
+
     // 3. Parse JSON Payload safely
     let body;
     try {
@@ -74,6 +80,7 @@ export async function POST(request: Request) {
       url: body.targetUrl,
       body: body.payload || {},
       signature: outgoingSignature,
+      userId: userId,
     });
 
     return NextResponse.json({ success: true, jobId: job.id });
