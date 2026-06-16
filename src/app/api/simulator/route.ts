@@ -11,8 +11,9 @@ export async function POST(request: Request) {
     const signature = crypto.createHmac('sha256', WEBHOOK_SECRET).update(rawBody).digest('hex');
     
     // Forward the request to our own ingestion API to simulate an external client
-    // We use localhost:3000 because this runs in the Next.js container itself
-    const res = await fetch('http://localhost:3000/api/webhook', {
+    // We use the dynamic origin so this works both locally and on Vercel
+    const origin = new URL(request.url).origin;
+    const res = await fetch(`${origin}/api/webhook`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
