@@ -1,0 +1,108 @@
+import { Worker, Job } from 'bullmq';
+import { PrismaClient } from '@prisma/client';
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/webhooks_db' });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
+
+// Connection settings for Redis. In production, these should come from environment variables.
+const connection = {
+  host: process.env.REDIS_HOST || '127.0.0.1',
+  port: parseInt(process.env.REDIS_PORT || '6379', 10),
+};
+
+interface WebhookJobData {
+  url: string;
+  body: any;
+}
+
+console.log('Starting BullMQ worker for incoming-webhooks queue...');
+
+const worker = new Worker<WebhookJobData>(
+  'incoming-webhooks',
+  async (job: Job<WebhookJobData>) => {
+    const { url, body } = job.data;
+    
+    console.log(`[Job ${job.id} | Attempt ${job.attemptsMade + 1}] Processing webhook delivery to ${url}`);
+
+    // Use native fetch API to send a POST request
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    // Check the response status
+    if (!response.ok) {
+      // Throwing an error is how BullMQ knows to trigger the exponential backoff retries
+      // that are configured on the queue/job level.
+      throw new Error(`Target server responded with status: ${response.status} ${response.statusText}`);
+    }
+
+    // If the request succeeds, log the success
+    console.log(`[Job ${job.id} | Attempt ${job.attemptsMade + 1}] Successfully delivered webhook to ${url}. Status: ${response.status}`);
+    return { status: response.status };
+  },
+  {
+    connection,
+  }
+);
+
+// Event: When a job succeeds
+worker.on('completed', async (job: Job) => {
+  console.log(`[Job ${job.id}] has successfully completed.`);
+  
+  if (!job.id) return;
+  
+  try {
+    await prisma.webhookLog.create({
+      data: {
+        jobId: job.id,
+        targetUrl: job.data.url,
+        payload: job.data.body || {},
+      },
+    });
+    console.log(`[Job ${job.id}] logged success to database.`);
+  } catch (error) {
+    console.error(`[Job ${job.id}] failed to log success to database:`, error);
+  }
+});
+
+// Event: When a job fails
+worker.on('failed', async (job: Job | undefined, err: Error) => {
+  if (!job) {
+    console.error('A job failed but no job context was provided.', err);
+    return;
+  }
+  
+  // Check if the job has exhausted all of its configured attempts
+  const maxAttempts = job.opts.attempts || 1;
+  
+  if (job.attemptsMade >= maxAttempts) {
+    // Permanent failure
+    console.error(`[Job ${job.id} | Attempt ${job.attemptsMade}] permanently failed after exhausting all attempts. Error: ${err.message}`);
+    
+    if (!job.id) return;
+    
+    try {
+      await prisma.deadLetterQueue.create({
+        data: {
+          jobId: job.id,
+          targetUrl: job.data.url,
+          payload: job.data.body || {},
+          errorReason: err.message,
+        },
+      });
+      console.log(`[Job ${job.id}] logged permanent failure to DeadLetterQueue.`);
+    } catch (dbError) {
+      console.error(`[Job ${job.id}] failed to log permanent failure to database:`, dbError);
+    }
+  } else {
+    // Temporary failure (will be retried)
+    console.warn(`[Job ${job.id} | Attempt ${job.attemptsMade}] failed temporarily and will be retried via exponential backoff. Error: ${err.message}`);
+  }
+});
