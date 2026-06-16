@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Send, CheckCircle2, AlertCircle, Loader2, Terminal } from 'lucide-react';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function WebhookSimulator() {
   const router = useRouter();
@@ -67,20 +68,20 @@ export default function WebhookSimulator() {
   };
 
   return (
-    <div className="bg-[#0c0c0e] border border-slate-800 rounded-3xl overflow-hidden shadow-2xl relative group">
+    <div className="bg-[#111113]/80 backdrop-blur-xl border border-white/5 rounded-3xl overflow-hidden shadow-2xl relative group">
       {/* Glossy top highlight */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent"></div>
       
       {/* Console Header */}
-      <div className="px-6 py-4 border-b border-slate-800/60 bg-[#121214] flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-white/5 bg-black/40 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Terminal className="w-5 h-5 text-indigo-400" />
-          <h2 className="text-sm font-semibold text-slate-200 tracking-wide">Developer Console</h2>
+          <Terminal className="w-4 h-4 text-indigo-400" />
+          <h2 className="text-sm font-medium text-slate-200 tracking-wide">Developer Console</h2>
         </div>
         <div className="flex gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
-          <div className="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
-          <div className="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-white/10"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-white/10"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-white/10"></div>
         </div>
       </div>
 
@@ -97,7 +98,7 @@ export default function WebhookSimulator() {
               required
               value={targetUrl}
               onChange={(e) => setTargetUrl(e.target.value)}
-              className="w-full pl-16 pr-4 py-3 rounded-xl border border-slate-800 bg-[#121214] text-slate-200 focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all font-mono text-sm placeholder-slate-600"
+              className="w-full pl-16 pr-4 py-3 rounded-xl border border-white/10 bg-black/50 text-slate-200 focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all font-mono text-sm placeholder-slate-600"
               placeholder="https://your-api.com/webhooks"
             />
           </div>
@@ -113,31 +114,45 @@ export default function WebhookSimulator() {
             rows={6}
             value={payloadStr}
             onChange={(e) => setPayloadStr(e.target.value)}
-            className="w-full px-4 py-4 rounded-xl border border-slate-800 bg-[#121214] text-emerald-400/90 font-mono text-sm focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all resize-none leading-relaxed"
+            className="w-full px-4 py-4 rounded-xl border border-white/10 bg-black/50 text-emerald-400/90 font-mono text-sm focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all resize-none leading-relaxed"
             spellCheck="false"
           />
         </div>
 
-        {status === 'error' && (
-          <div className="flex items-start gap-3 text-sm text-rose-400 bg-rose-500/10 border border-rose-500/20 p-4 rounded-xl">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-            <p className="leading-relaxed font-mono text-xs">{message}</p>
-          </div>
-        )}
+        <AnimatePresence mode="popLayout">
+          {status === 'error' && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: 'auto' }}
+              exit={{ opacity: 0, y: -10, height: 0 }}
+              className="flex items-start gap-3 text-sm text-rose-400 bg-rose-500/10 border border-rose-500/20 p-4 rounded-xl"
+            >
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <p className="leading-relaxed font-mono text-xs">{message}</p>
+            </motion.div>
+          )}
 
-        {status === 'success' && (
-          <div className="flex items-start gap-3 text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
-            <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
-            <p className="leading-relaxed font-mono text-xs">{message}</p>
-          </div>
-        )}
+          {status === 'success' && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: 'auto' }}
+              exit={{ opacity: 0, y: -10, height: 0 }}
+              className="flex items-start gap-3 text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl"
+            >
+              <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <p className="leading-relaxed font-mono text-xs">{message}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        <button
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           type="submit"
           disabled={status === 'loading'}
           className={clsx(
-            "w-full flex items-center justify-center gap-2 px-6 py-3.5 font-medium text-white rounded-xl transition-all",
-            "bg-indigo-500 hover:bg-indigo-400 active:scale-[0.98]",
+            "w-full flex items-center justify-center gap-2 px-6 py-3.5 font-medium text-white rounded-xl transition-all shadow-[0_0_20px_rgba(99,102,241,0.2)]",
+            "bg-indigo-600 hover:bg-indigo-500",
             "disabled:opacity-50 disabled:pointer-events-none"
           )}
         >
@@ -152,7 +167,7 @@ export default function WebhookSimulator() {
               <span>Fire Webhook</span>
             </>
           )}
-        </button>
+        </motion.button>
       </form>
     </div>
   );

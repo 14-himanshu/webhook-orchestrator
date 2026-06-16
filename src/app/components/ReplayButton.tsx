@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { RotateCcw, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 
 export default function ReplayButton({ dlqId }: { dlqId: string }) {
   const [isReplaying, setIsReplaying] = useState(false);
@@ -35,22 +36,23 @@ export default function ReplayButton({ dlqId }: { dlqId: string }) {
   };
 
   return (
-    <button
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
       onClick={handleReplay}
       disabled={isReplaying}
       className={clsx(
-        "flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl transition-all shadow-sm border",
-        "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200",
-        "dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-750 dark:hover:text-indigo-400 dark:hover:border-slate-600",
-        "active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+        "flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg transition-all shadow-[0_0_15px_rgba(0,0,0,0.5)] border",
+        "bg-[#1a1a1f] border-white/10 text-slate-300 hover:text-indigo-400 hover:border-indigo-500/50 hover:bg-indigo-500/10",
+        "disabled:opacity-50 disabled:pointer-events-none"
       )}
     >
       {isReplaying ? (
-        <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+        <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
       ) : (
-        <RotateCcw className="w-4 h-4" />
+        <RotateCcw className="w-3.5 h-3.5" />
       )}
       {isReplaying ? 'Replaying...' : 'Replay'}
-    </button>
+    </motion.button>
   );
 }
