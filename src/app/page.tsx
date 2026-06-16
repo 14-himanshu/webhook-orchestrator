@@ -16,7 +16,7 @@ export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
 export default async function Dashboard() {
-  const { userId } = auth();
+  const { userId } = await auth();
   
   if (!userId) {
     return null; // Handled by middleware redirect
@@ -78,7 +78,6 @@ export default async function Dashboard() {
             <div className="flex items-center justify-center border border-zinc-800 bg-[#0A0A0A] rounded-full p-1 w-8 h-8">
               <UserButton 
                 appearance={{ elements: { userButtonAvatarBox: "w-6 h-6" } }}
-                afterSignOutUrl="/"
               />
             </div>
           </div>

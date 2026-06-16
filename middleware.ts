@@ -4,9 +4,9 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 // However, the simulator and the dashboard itself are protected
 const isPublicRoute = createRouteMatcher(["/api/webhook"]);
 
-export default clerkMiddleware((auth, req) => {
+export default clerkMiddleware(async (auth, req) => {
   if (!isPublicRoute(req)) {
-    auth().protect();
+    await auth.protect();
   }
 });
 
