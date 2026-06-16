@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Send, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Send, CheckCircle2, AlertCircle, Loader2, Terminal } from 'lucide-react';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
 
@@ -68,55 +68,68 @@ export default function WebhookSimulator() {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-sm">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2.5 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg border border-indigo-100 dark:border-indigo-500/20">
-          <Send className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+    <div className="bg-[#0c0c0e] border border-slate-800 rounded-3xl overflow-hidden shadow-2xl relative group">
+      {/* Glossy top highlight */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+      
+      {/* Console Header */}
+      <div className="px-6 py-4 border-b border-slate-800/60 bg-[#121214] flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Terminal className="w-5 h-5 text-indigo-400" />
+          <h2 className="text-sm font-semibold text-slate-200 tracking-wide">Developer Console</h2>
         </div>
-        <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Webhook Simulator</h2>
+        <div className="flex gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+        </div>
       </div>
 
-      <form onSubmit={handleFireWebhook} className="space-y-6">
+      <form onSubmit={handleFireWebhook} className="p-6 space-y-6">
         <div>
-          <label htmlFor="targetUrl" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="targetUrl" className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">
             Target URL
           </label>
-          <input
-            id="targetUrl"
-            type="url"
-            required
-            value={targetUrl}
-            onChange={(e) => setTargetUrl(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow"
-            placeholder="https://your-api.com/webhooks"
-          />
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-mono text-sm">POST</span>
+            <input
+              id="targetUrl"
+              type="url"
+              required
+              value={targetUrl}
+              onChange={(e) => setTargetUrl(e.target.value)}
+              className="w-full pl-16 pr-4 py-3 rounded-xl border border-slate-800 bg-[#121214] text-slate-200 focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all font-mono text-sm placeholder-slate-600"
+              placeholder="https://your-api.com/webhooks"
+            />
+          </div>
         </div>
 
         <div>
-          <label htmlFor="payload" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="payload" className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">
             JSON Payload
           </label>
           <textarea
             id="payload"
             required
-            rows={5}
+            rows={6}
             value={payloadStr}
             onChange={(e) => setPayloadStr(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow resize-none"
+            className="w-full px-4 py-4 rounded-xl border border-slate-800 bg-[#121214] text-emerald-400/90 font-mono text-sm focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all resize-none leading-relaxed"
+            spellCheck="false"
           />
         </div>
 
         {status === 'error' && (
-          <div className="flex items-center gap-2 text-sm text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 p-4 rounded-xl">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            <p>{message}</p>
+          <div className="flex items-start gap-3 text-sm text-rose-400 bg-rose-500/10 border border-rose-500/20 p-4 rounded-xl">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <p className="leading-relaxed font-mono text-xs">{message}</p>
           </div>
         )}
 
         {status === 'success' && (
-          <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 p-4 rounded-xl">
-            <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-            <p>{message}</p>
+          <div className="flex items-start gap-3 text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
+            <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <p className="leading-relaxed font-mono text-xs">{message}</p>
           </div>
         )}
 
@@ -124,20 +137,20 @@ export default function WebhookSimulator() {
           type="submit"
           disabled={status === 'loading'}
           className={clsx(
-            "w-full flex items-center justify-center gap-2 px-6 py-3.5 font-semibold text-white rounded-xl transition-all shadow-sm",
-            "bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98]",
-            "disabled:opacity-70 disabled:pointer-events-none"
+            "w-full flex items-center justify-center gap-2 px-6 py-3.5 font-medium text-white rounded-xl transition-all",
+            "bg-indigo-500 hover:bg-indigo-400 active:scale-[0.98]",
+            "disabled:opacity-50 disabled:pointer-events-none"
           )}
         >
           {status === 'loading' ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Queueing Webhook...
+              <span>Queueing Job...</span>
             </>
           ) : (
             <>
-              <Send className="w-5 h-5" />
-              Fire Webhook
+              <Send className="w-4 h-4" />
+              <span>Fire Webhook</span>
             </>
           )}
         </button>
