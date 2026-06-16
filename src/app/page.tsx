@@ -1,8 +1,13 @@
 import prisma from '@/lib/prisma';
 import ReplayButton from '@/app/components/ReplayButton';
-import { ThemeToggle } from '@/app/components/ThemeToggle';
 import WebhookSimulator from '@/app/components/WebhookSimulator';
-import { ShieldCheck, Activity, CheckCircle2, XCircle, AlertCircle, Database, Server } from 'lucide-react';
+import BackgroundGrid from '@/app/components/BackgroundGrid';
+import AnimatedCounter from '@/app/components/AnimatedCounter';
+import AutoRefresh from '@/app/components/AutoRefresh';
+import ClientDate from '@/app/components/ClientDate';
+import { ShieldCheck, Activity, CheckCircle2, XCircle, AlertCircle, Database, Server, Loader2, Clock } from 'lucide-react';
+import * as motion from 'framer-motion/client';
+import { webhookQueue } from '@/queue/config';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,146 +19,252 @@ export default async function Dashboard() {
     orderBy: { failedAt: 'desc' },
   });
 
+  // Fetch jobs that are currently pending, active, or waiting for a retry (delayed)
+  const processingJobs = await webhookQueue.getJobs(['active', 'waiting', 'delayed']);
+
   return (
-    <main className="min-h-screen font-sans selection:bg-indigo-500/30">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 py-12 space-y-12">
+    <main className="min-h-screen font-sans selection:bg-indigo-500/30 relative text-zinc-300">
+      <BackgroundGrid />
+      <AutoRefresh interval={2000} />
+      
+      {/* Top Radial Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[400px] opacity-20 pointer-events-none bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-500 via-transparent to-transparent"></div>
+
+      <div className="max-w-[85rem] mx-auto px-6 sm:px-8 py-12 space-y-8 relative z-10">
         
-        {/* Hero Section / Header */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-12">
+        {/* Header Section */}
+        <motion.header 
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="flex flex-col md:flex-row md:items-end justify-between gap-6"
+        >
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 mb-2">
-              <ShieldCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 tracking-wide uppercase">Secured by HMAC-SHA256</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-indigo-500/10 border border-indigo-500/20 mb-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="text-[11px] font-bold text-indigo-400 tracking-widest uppercase">Secured by HMAC-SHA256</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-indigo-800 to-slate-900 dark:from-white dark:via-indigo-400 dark:to-white">
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-white">
               Webhook Orchestrator
             </h1>
-            <p className="text-slate-600 dark:text-slate-400 text-lg max-w-xl">
-              Reliable, asynchronous event delivery infrastructure with exponential backoff and dead-letter queueing.
+            <p className="text-zinc-400 text-base max-w-xl font-medium">
+              Enterprise event delivery infrastructure. Decoupled, idempotent, resilient.
             </p>
           </div>
-          <div className="flex items-center gap-4 pb-2">
-            <ThemeToggle />
-            <div className="flex items-center gap-3 px-5 py-2.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-full border border-slate-200 dark:border-slate-800 shadow-sm">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 px-4 py-2 bg-zinc-900/50 backdrop-blur-md rounded-lg border border-white/5 shadow-sm">
+              <div className="relative flex h-2.5 w-2.5 items-center justify-center">
+                <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-emerald-400/60"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+              </div>
+              <span className="text-xs font-semibold text-emerald-400 tracking-widest uppercase flex items-center gap-1.5">
+                System Operational
               </span>
-              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">System Operational</span>
             </div>
           </div>
-        </header>
+        </motion.header>
 
-        {/* Metrics Grid */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="relative group rounded-[2rem] bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-10 overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgb(79,70,229,0.1)] transition-all duration-300">
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent"></div>
-            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
-              <CheckCircle2 className="w-40 h-40 text-indigo-500" />
-            </div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2.5 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl border border-indigo-100 dark:border-indigo-500/20">
-                  <Database className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-                </div>
-                <h2 className="text-base font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Delivered Webhooks</h2>
+        {/* Top Section: Metrics */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.05 }}
+            className="rounded-xl bg-zinc-900/50 backdrop-blur-md border border-white/5 p-8 flex flex-col justify-between shadow-sm hover:border-white/10 transition-all duration-200 ease-in-out"
+          >
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-2 bg-indigo-500/10 rounded-lg border border-indigo-500/20">
+                <Database className="w-4 h-4 text-indigo-400" />
               </div>
-              <div className="flex items-end gap-4">
-                <span className="text-7xl font-bold tracking-tighter text-slate-900 dark:text-white">{successCount.toLocaleString()}</span>
-                <span className="text-indigo-600 dark:text-indigo-400 font-medium mb-2.5 flex items-center gap-1.5 text-lg">
-                  <Activity className="w-5 h-5" /> Real-time
-                </span>
-              </div>
+              <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Total Delivered</h2>
             </div>
-          </div>
+            <div className="flex items-baseline gap-3">
+              <span className="text-5xl font-semibold tracking-tight text-white">
+                <AnimatedCounter value={successCount} />
+              </span>
+              <span className="text-indigo-400 font-medium flex items-center gap-1 text-xs uppercase tracking-wider">
+                <Activity className="w-3.5 h-3.5" /> Live
+              </span>
+            </div>
+          </motion.div>
 
-          <div className="relative group rounded-[2rem] bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-10 overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgb(225,29,72,0.08)] transition-all duration-300">
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-rose-500/20 to-transparent"></div>
-            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
-              <XCircle className="w-40 h-40 text-rose-500" />
-            </div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2.5 bg-rose-50 dark:bg-rose-500/10 rounded-xl border border-rose-100 dark:border-rose-500/20">
-                  <Server className="w-6 h-6 text-rose-600 dark:text-rose-400" />
-                </div>
-                <h2 className="text-base font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Dead Letter Queue</h2>
+          <motion.div 
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="rounded-xl bg-zinc-900/50 backdrop-blur-md border border-white/5 p-8 flex flex-col justify-between shadow-sm hover:border-white/10 transition-all duration-200 ease-in-out"
+          >
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-2 bg-rose-500/10 rounded-lg border border-rose-500/20">
+                <Server className="w-4 h-4 text-rose-400" />
               </div>
-              <div className="flex items-end gap-4">
-                <span className="text-7xl font-bold tracking-tighter text-slate-900 dark:text-white">{failedCount.toLocaleString()}</span>
-                <span className="text-rose-600 dark:text-rose-400 font-medium mb-2.5 flex items-center gap-1.5 text-lg">
-                  <XCircle className="w-5 h-5" /> Failed
-                </span>
-              </div>
+              <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Dead Letters</h2>
             </div>
-          </div>
+            <div className="flex items-baseline gap-3">
+              <span className="text-5xl font-semibold tracking-tight text-white tabular-nums">
+                {failedCount.toLocaleString()}
+              </span>
+              <span className="text-rose-400 font-medium flex items-center gap-1 text-xs uppercase tracking-wider">
+                <XCircle className="w-3.5 h-3.5" /> Failed
+              </span>
+            </div>
+          </motion.div>
         </section>
 
-        {/* Main Content Grid: Simulator + DLQ Table */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        {/* Bottom Section: Bento Box Grid */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* Simulator (Left Column) */}
-          <div className="lg:col-span-1">
+          {/* Left Column (1/3 Width): Developer Console */}
+          <motion.div 
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.15 }}
+            className="lg:col-span-1"
+          >
             <WebhookSimulator />
-          </div>
+          </motion.div>
 
-          {/* DLQ Table (Right Columns) */}
-          <section className="lg:col-span-2 relative rounded-[2rem] bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)]">
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-400/20 to-transparent"></div>
-            <div className="px-10 py-8 border-b border-slate-200/60 dark:border-slate-800/60 flex justify-between items-center bg-slate-50/50 dark:bg-slate-950/20">
-              <h3 className="text-xl font-semibold text-slate-900 dark:text-white flex items-center gap-3">
-                <div className="p-2 bg-amber-50 dark:bg-amber-500/10 rounded-lg border border-amber-100 dark:border-amber-500/20">
-                  <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-500" />
-                </div>
-                Dead Letters Requiring Action
-              </h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-base text-left">
-                <thead className="text-sm text-slate-500 dark:text-slate-400 uppercase tracking-widest bg-slate-50/30 dark:bg-slate-950/10 backdrop-blur-sm">
-                  <tr>
-                    <th scope="col" className="px-10 py-6 font-medium">Job ID</th>
-                    <th scope="col" className="px-10 py-6 font-medium">Target URL</th>
-                    <th scope="col" className="px-10 py-6 font-medium text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                  {recentDLQ.length === 0 ? (
+          {/* Right Column (2/3 Width): Processing Queue & DLQ Table */}
+          <motion.div 
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            className="lg:col-span-2 flex flex-col gap-6"
+          >
+            
+            {/* Processing Queue */}
+            <div className="rounded-xl bg-zinc-900/50 backdrop-blur-md border border-white/5 overflow-hidden shadow-sm flex flex-col flex-1 min-h-[300px]">
+              <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01] flex items-center shrink-0">
+                <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-widest flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-indigo-400" />
+                  Processing Queue
+                </h3>
+              </div>
+              <div className="overflow-auto flex-1 max-h-[350px]">
+                <table className="w-full text-left">
+                  <thead className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest border-b border-white/5 bg-black/20 sticky top-0 z-10">
                     <tr>
-                      <td colSpan={3} className="px-10 py-32 text-center text-slate-500 dark:text-slate-400">
-                        <div className="flex flex-col items-center justify-center">
-                          <CheckCircle2 className="w-16 h-16 mb-6 text-slate-300 dark:text-slate-700" />
-                          <p className="text-xl font-medium text-slate-900 dark:text-slate-200">Dead letter queue is completely empty.</p>
-                          <p className="text-base mt-2">All systems are operating perfectly.</p>
-                        </div>
-                      </td>
+                      <th scope="col" className="px-6 py-4">Job ID</th>
+                      <th scope="col" className="px-6 py-4">Target URL</th>
+                      <th scope="col" className="px-6 py-4 text-right">Status</th>
                     </tr>
-                  ) : (
-                    recentDLQ.map((dlq) => (
-                      <tr key={dlq.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors group">
-                        <td className="px-10 py-8 font-mono text-sm text-slate-500 dark:text-slate-400">
-                          {dlq.jobId}
-                          <div className="text-xs text-slate-400 dark:text-slate-500 mt-1">{dlq.failedAt.toLocaleString()}</div>
-                        </td>
-                        <td className="px-10 py-8 text-slate-900 dark:text-slate-200 font-medium max-w-[12rem] truncate" title={dlq.targetUrl}>
-                          {dlq.targetUrl}
-                          <div className="text-rose-600 dark:text-rose-400 font-mono text-xs truncate mt-1" title={dlq.errorReason}>
-                            {dlq.errorReason}
-                          </div>
-                        </td>
-                        <td className="px-10 py-8 text-right">
-                          <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
-                            <ReplayButton dlqId={dlq.id} />
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {processingJobs.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="px-6 py-16 text-center text-zinc-500">
+                          <div className="flex flex-col items-center justify-center">
+                            <Activity className="w-6 h-6 text-zinc-600 mb-3" />
+                            <p className="text-sm font-medium text-zinc-400">No active jobs</p>
+                            <p className="text-[11px] mt-1 text-zinc-500">The processing queue is empty.</p>
                           </div>
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      processingJobs.map((job, index) => (
+                        <motion.tr 
+                          layout
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{ 
+                            opacity: { duration: 0.2, delay: index * 0.05 },
+                            layout: { type: "spring", stiffness: 300, damping: 30 }
+                          }}
+                          key={job.id} 
+                          className="hover:bg-white/[0.02] transition-colors duration-200 ease-in-out group"
+                        >
+                          <td className="px-6 py-4 font-mono text-[13px] text-zinc-400">
+                            {job.id}
+                            <div className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">
+                              Attempt {job.attemptsMade}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-zinc-200 font-mono text-[13px] max-w-[16rem] truncate" title={job.data.url}>
+                            {job.data.url}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="inline-flex items-center justify-end gap-2 text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase">
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              Processing
+                            </div>
+                          </td>
+                        </motion.tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </section>
-        </div>
+
+            {/* Action Required Queue */}
+            <div className="rounded-xl bg-zinc-900/50 backdrop-blur-md border border-white/5 overflow-hidden shadow-sm flex flex-col flex-1 min-h-[300px]">
+              <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01] flex items-center shrink-0">
+                <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-widest flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-500/80" />
+                  Action Required Queue
+                </h3>
+              </div>
+              <div className="overflow-auto flex-1 max-h-[350px]">
+                <table className="w-full text-left">
+                  <thead className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest border-b border-white/5 bg-black/20 sticky top-0 z-10">
+                    <tr>
+                      <th scope="col" className="px-6 py-4">Job ID</th>
+                      <th scope="col" className="px-6 py-4">Target URL</th>
+                      <th scope="col" className="px-6 py-4 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {recentDLQ.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="px-6 py-16 text-center text-zinc-500">
+                          <div className="flex flex-col items-center justify-center">
+                            <CheckCircle2 className="w-6 h-6 text-emerald-500/80 mb-3" />
+                            <p className="text-sm font-medium text-zinc-300">Queue is clear</p>
+                            <p className="text-[11px] mt-1 text-zinc-500">No failed webhooks require attention.</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      recentDLQ.map((dlq, index) => (
+                        <motion.tr 
+                          layout
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{ 
+                            opacity: { duration: 0.2, delay: 0.2 + (index * 0.05) },
+                            layout: { type: "spring", stiffness: 300, damping: 30 }
+                          }}
+                          key={dlq.id} 
+                          className="hover:bg-white/[0.02] transition-colors duration-200 ease-in-out group"
+                        >
+                          <td className="px-6 py-4 font-mono text-[13px] text-zinc-400">
+                            {dlq.jobId}
+                            <div className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">
+                              <ClientDate date={dlq.failedAt} />
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-zinc-200 font-mono text-[13px] max-w-[16rem] truncate" title={dlq.targetUrl}>
+                            {dlq.targetUrl}
+                            <div className="text-rose-400/80 text-[11px] truncate mt-1 font-sans font-medium" title={dlq.errorReason}>
+                              {dlq.errorReason}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <ReplayButton dlqId={dlq.id} />
+                          </td>
+                        </motion.tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </motion.div>
+          
+        </section>
       </div>
     </main>
   );
