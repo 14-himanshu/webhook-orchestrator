@@ -6,9 +6,9 @@ import AutoRefresh from '@/app/components/AutoRefresh';
 import SpotlightCard from '@/app/components/SpotlightCard';
 import NumberTicker from '@/app/components/NumberTicker';
 import JobRow from '@/app/components/JobRow';
-import DeadLetterRow from '@/app/components/DeadLetterRow';
+import ActionRequiredQueue from '@/app/components/ActionRequiredQueue';
+import TrafficChart from '@/app/components/TrafficChart';
 import { ShieldCheck, Activity, CheckCircle2, XCircle, AlertCircle, Database, Server, Clock, Settings } from 'lucide-react';
-import { AnimatePresence } from 'framer-motion';
 import * as motion from 'framer-motion/client';
 import { webhookQueue } from '@/queue/config';
 import { auth } from '@clerk/nextjs/server';
@@ -43,12 +43,44 @@ export default async function Dashboard() {
   const allProcessingJobs = await webhookQueue.getJobs(['active', 'waiting', 'delayed']);
   const processingJobs = allProcessingJobs.filter(job => job.data.userId === userId);
 
+  // --- TRAFFIC CHART AGGREGATION ---
+  const sixtyMinutesAgo = new Date(Date.now() - 60 * 60 * 1000);
+  const recentSuccessLogs = await prisma.webhookLog.findMany({
+    where: { userId, deliveredAt: { gte: sixtyMinutesAgo } },
+    select: { deliveredAt: true }
+  });
+  const recentFailureLogs = await prisma.deadLetterQueue.findMany({
+    where: { userId, failedAt: { gte: sixtyMinutesAgo } },
+    select: { failedAt: true }
+  });
+
+  const chartBuckets = Array.from({ length: 6 }).map((_, i) => {
+    const startOfInterval = new Date(Date.now() - (5 - i) * 10 * 60 * 1000);
+    const label = startOfInterval.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+    return { time: label, success: 0, failed: 0, startMs: startOfInterval.getTime() };
+  });
+
+  recentSuccessLogs.forEach(log => {
+    const ms = log.deliveredAt.getTime();
+    const bucket = chartBuckets.find(b => ms >= b.startMs && ms < b.startMs + 10 * 60 * 1000);
+    if (bucket) bucket.success += 1;
+  });
+
+  recentFailureLogs.forEach(log => {
+    const ms = log.failedAt.getTime();
+    const bucket = chartBuckets.find(b => ms >= b.startMs && ms < b.startMs + 10 * 60 * 1000);
+    if (bucket) bucket.failed += 1;
+  });
+
+  const liveChartData = chartBuckets.map(({ time, success, failed }) => ({ time, success, failed }));
+
+
   return (
-    <main className="min-h-screen font-sans selection:bg-indigo-500/30 relative text-zinc-300">
+    <main className="min-h-screen flex flex-col font-sans selection:bg-indigo-500/30 relative text-zinc-300">
       <BackgroundGrid />
       <AutoRefresh interval={2000} />
       
-      <div className="max-w-[85rem] mx-auto px-6 sm:px-8 py-12 space-y-8 relative z-10">
+      <div className="max-w-[85rem] w-full mx-auto px-6 sm:px-8 py-12 space-y-8 relative z-10">
         
         {/* Header Section */}
         <motion.header 
@@ -132,6 +164,11 @@ export default async function Dashboard() {
           </SpotlightCard>
         </section>
 
+        {/* Analytics Section */}
+        <section>
+          <TrafficChart data={liveChartData} />
+        </section>
+
         {/* Bottom Section: Bento Box Grid */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
@@ -154,14 +191,14 @@ export default async function Dashboard() {
           >
             
             {/* Processing Queue */}
-            <div className="rounded-xl bg-[#0A0A0A] border border-zinc-800 overflow-hidden shadow-sm flex flex-col flex-1 min-h-[300px]">
+            <div className="rounded-xl bg-[#0A0A0A] border border-zinc-800 shadow-sm flex flex-col">
               <div className="px-6 py-5 border-b border-zinc-800 bg-zinc-900/50 flex items-center shrink-0">
                 <h3 className="text-xs font-medium text-zinc-300 uppercase tracking-widest flex items-center gap-2">
                   <Clock className="w-4 h-4 text-zinc-400" />
                   Processing Queue
                 </h3>
               </div>
-              <div className="overflow-auto flex-1 max-h-[350px]">
+              <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest border-b border-zinc-800 bg-zinc-900 sticky top-0 z-10">
                     <tr>
@@ -171,10 +208,9 @@ export default async function Dashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-800/50">
-                    <AnimatePresence mode="popLayout">
                     {processingJobs.length === 0 ? (
                       <tr>
-                        <td colSpan={3} className="px-6 py-16 text-center text-zinc-500">
+                        <td colSpan={3} className="px-6 py-8 text-center text-zinc-500">
                           <div className="flex flex-col items-center justify-center">
                             <Activity className="w-5 h-5 text-zinc-600 mb-3" />
                             <p className="text-sm font-medium text-zinc-400">No active jobs</p>
@@ -195,52 +231,13 @@ export default async function Dashboard() {
                         />
                       ))
                     )}
-                    </AnimatePresence>
                   </tbody>
                 </table>
               </div>
             </div>
 
-            {/* Action Required Queue */}
-            <div className="rounded-xl bg-[#0A0A0A] border border-zinc-800 overflow-hidden shadow-sm flex flex-col flex-1 min-h-[300px]">
-              <div className="px-6 py-5 border-b border-zinc-800 bg-zinc-900/50 flex items-center shrink-0">
-                <h3 className="text-xs font-medium text-zinc-300 uppercase tracking-widest flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-zinc-400" />
-                  Action Required Queue
-                </h3>
-              </div>
-              <div className="overflow-auto flex-1 max-h-[350px]">
-                <table className="w-full text-left">
-                  <thead className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest border-b border-zinc-800 bg-zinc-900 sticky top-0 z-10">
-                    <tr>
-                      <th scope="col" className="px-6 py-4">Job ID</th>
-                      <th scope="col" className="px-6 py-4">Target URL</th>
-                      <th scope="col" className="px-6 py-4 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-800/50">
-                    <AnimatePresence mode="popLayout">
-                    {recentDLQ.length === 0 ? (
-                      <tr>
-                        <td colSpan={3} className="px-6 py-16 text-center text-zinc-500">
-                          <div className="flex flex-col items-center justify-center">
-                            <CheckCircle2 className="w-5 h-5 text-zinc-600 mb-3" />
-                            <p className="text-sm font-medium text-zinc-400">Queue is clear</p>
-                            <p className="text-[11px] mt-1 text-zinc-600">No failed webhooks require attention.</p>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      recentDLQ.map((dlq: any, index: number) => (
-                        <DeadLetterRow key={dlq.id} dlq={dlq} index={index} />
-                      ))
-                    )}
-                    </AnimatePresence>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            {/* Action Required Queue (Paginated Client Component) */}
+            <ActionRequiredQueue dlqItems={recentDLQ} />
 
           </motion.div>
           

@@ -45,3 +45,12 @@ body::before {
 :root.dark body::before {
   background-image: radial-gradient(#27272a 1px, transparent 1px);
 }
+
+/* Hide scrollbars for a clean app feel */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import PayloadModal from './PayloadModal';
 
@@ -11,11 +10,7 @@ export default function JobRow({ job, index }: { job: any; index: number }) {
 
   return (
     <>
-      <motion.tr 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ opacity: { duration: 0.15, delay: index * 0.02 } }}
+      <tr 
         className="hover:bg-white/[0.02] transition-colors duration-200 ease-in-out group cursor-pointer"
         onClick={() => setIsModalOpen(true)}
       >
@@ -34,7 +29,7 @@ export default function JobRow({ job, index }: { job: any; index: number }) {
             Processing
           </div>
         </td>
-      </motion.tr>
+      </tr>
 
       <PayloadModal 
         isOpen={isModalOpen} 

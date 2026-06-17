@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import ClientDate from './ClientDate';
 import ReplayButton from './ReplayButton';
 import PayloadModal from './PayloadModal';
@@ -12,11 +11,7 @@ export default function DeadLetterRow({ dlq, index }: { dlq: any; index: number 
 
   return (
     <>
-      <motion.tr 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ opacity: { duration: 0.15, delay: index * 0.02 } }}
+      <tr 
         className="hover:bg-white/[0.02] transition-colors duration-200 ease-in-out group cursor-pointer"
         onClick={() => setIsModalOpen(true)}
       >
@@ -35,7 +30,7 @@ export default function DeadLetterRow({ dlq, index }: { dlq: any; index: number 
         <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
           <ReplayButton dlqId={dlq.id} />
         </td>
-      </motion.tr>
+      </tr>
       
       <PayloadModal 
         isOpen={isModalOpen} 

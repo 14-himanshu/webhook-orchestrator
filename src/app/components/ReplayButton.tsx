@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { RefreshCcw, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -31,6 +32,8 @@ export default function ReplayButton({ dlqId }: ReplayButtonProps) {
         throw new Error(errorData.error || 'Failed to replay job');
       }
 
+      toast.success(`Job ${dlqId} queued for replay`);
+
       // Refresh the current route to update the table UI
       startTransition(() => {
         router.refresh();
@@ -39,7 +42,7 @@ export default function ReplayButton({ dlqId }: ReplayButtonProps) {
       setIsReplaying(false);
     } catch (error) {
       console.error('Error replaying job:', error);
-      alert('Failed to replay job. Please check the console.');
+      toast.error('Failed to replay job. Please check the console.');
       setIsReplaying(false);
     }
   };
