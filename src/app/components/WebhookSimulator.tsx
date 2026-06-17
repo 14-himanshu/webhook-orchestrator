@@ -1,37 +1,36 @@
 'use client';
 
 import { useState } from 'react';
-import { Send, CheckCircle2, AlertCircle, Loader2, Terminal } from 'lucide-react';
+import { Send, Loader2, Terminal } from 'lucide-react';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 export default function WebhookSimulator() {
   const router = useRouter();
   
   const [targetUrl, setTargetUrl] = useState('https://jsonplaceholder.typicode.com/posts');
   const [payloadStr, setPayloadStr] = useState('{\n  "event": "test_ping",\n  "timestamp": "' + new Date().toISOString() + '"\n}');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [message, setMessage] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading'>('idle');
 
   const handleFireWebhook = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('loading');
-    setMessage('');
 
     // 1. Validate JSON
     let parsedPayload;
     try {
       parsedPayload = JSON.parse(payloadStr);
-    } catch (err) {
-      setStatus('error');
-      setMessage('Invalid JSON payload. Please check your syntax.');
+    } catch {
+      setStatus('idle');
+      toast.error('Invalid JSON payload. Please check your syntax.');
       return;
     }
 
     if (!targetUrl.startsWith('http')) {
-      setStatus('error');
-      setMessage('Target URL must start with http:// or https://');
+      setStatus('idle');
+      toast.error('Target URL must start with http:// or https://');
       return;
     }
 
@@ -54,17 +53,16 @@ export default function WebhookSimulator() {
         throw new Error(data.error || 'Failed to queue webhook');
       }
 
-      setStatus('success');
-      setMessage(`Success! Job queued with ID: ${data.jobId}`);
+      setStatus('idle');
+      toast.success(`Job queued with ID: ${data.jobId}`);
       
       // Refresh the page data in the background to update the DLQ table if necessary
       setTimeout(() => router.refresh(), 1000);
       
-      // Reset success message after 5 seconds
-      setTimeout(() => setStatus('idle'), 5000);
-    } catch (err: any) {
-      setStatus('error');
-      setMessage(err.message || 'An unexpected error occurred.');
+    } catch (err: unknown) {
+      const error = err as Error;
+      setStatus('idle');
+      toast.error(error.message || 'An unexpected error occurred.');
     }
   };
 
@@ -79,7 +77,7 @@ export default function WebhookSimulator() {
 
       {/* Console Form Content */}
       <div className="p-6 flex-1 flex flex-col">
-        <form onSubmit={handleFireWebhook} className="space-y-6 flex flex-col h-full">
+        <motion.form layout onSubmit={handleFireWebhook} className="space-y-6 flex flex-col h-full">
           <div>
             <label htmlFor="targetUrl" className="block text-[10px] font-medium text-zinc-500 mb-2 uppercase tracking-widest">
               Target URL
@@ -112,35 +110,9 @@ export default function WebhookSimulator() {
             />
           </div>
 
-          <AnimatePresence mode="popLayout">
-            {status === 'error' && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.15 }}
-                className="flex items-start gap-3 text-sm text-zinc-300 bg-rose-500/10 border border-rose-500/20 p-4 rounded-lg shrink-0"
-              >
-                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-rose-500" />
-                <p className="leading-relaxed font-mono text-[11px]">{message}</p>
-              </motion.div>
-            )}
 
-            {status === 'success' && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.15 }}
-                className="flex items-start gap-3 text-sm text-zinc-300 bg-zinc-800/50 border border-zinc-700 p-4 rounded-lg shrink-0"
-              >
-                <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5 text-zinc-400" />
-                <p className="leading-relaxed font-mono text-[11px]">{message}</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
           
-          <div className="pt-2 shrink-0 mt-auto">
+          <motion.div layout className="pt-2 shrink-0 mt-auto">
             <button
               type="submit"
               disabled={status === 'loading'}
@@ -162,8 +134,8 @@ export default function WebhookSimulator() {
                 </>
               )}
             </button>
-          </div>
-        </form>
+          </motion.div>
+        </motion.form>
       </div>
     </div>
   );

@@ -1,12 +1,8 @@
 import { Worker, Job } from 'bullmq';
-import { PrismaClient } from '@prisma/client';
 import { sendCriticalAlert } from './utils/alerting';
 import Redis from 'ioredis';
 import * as http from 'http';
-
-const prisma = new PrismaClient({
-  accelerateUrl: process.env.DATABASE_URL || 'prisma+postgres://accelerate.prisma-data.net/?api_key=dummy',
-});
+import prisma from './lib/prisma';
 
 // Connection settings for Redis. In production, these should come from environment variables.
 const connection = process.env.REDIS_URL 
@@ -29,6 +25,7 @@ http.createServer((req, res) => {
 
 interface WebhookJobData {
   url: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   body: any;
   signature?: string;
   userId?: string;
@@ -51,12 +48,16 @@ const worker = new Worker<WebhookJobData>(
       headers['x-webhook-signature'] = signature;
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
     // Use native fetch API to send a POST request
     const response = await fetch(url, {
       method: 'POST',
       headers,
       body: JSON.stringify(body),
-    });
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeoutId));
 
     // Check the response status
     if (!response.ok) {
@@ -70,6 +71,7 @@ const worker = new Worker<WebhookJobData>(
     return { status: response.status };
   },
   {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     connection: connection as any,
     // Rate limiter: Max 10 jobs per second globally across all workers
     limiter: {
@@ -133,6 +135,7 @@ worker.on('failed', async (job: Job | undefined, err: Error) => {
         jobId: job.id,
         targetUrl: job.data.url,
         errorReason: err.message,
+        userId: job.data.userId,
       });
     } catch (dbError) {
       console.error(`[Job ${job.id}] failed to log permanent failure to database:`, dbError);
@@ -142,3 +145,19 @@ worker.on('failed', async (job: Job | undefined, err: Error) => {
     console.warn(`[Job ${job.id} | Attempt ${job.attemptsMade}] failed temporarily and will be retried via exponential backoff. Error: ${err.message}`);
   }
 });
+
+// Graceful Shutdown
+const shutdown = async () => {
+  console.log('Shutting down worker gracefully...');
+  await worker.close();
+  await prisma.$disconnect();
+  
+  if (connection instanceof Redis) {
+    connection.quit();
+  }
+  
+  process.exit(0);
+};
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);

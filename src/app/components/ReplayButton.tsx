@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { RefreshCcw, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
@@ -12,6 +12,7 @@ interface ReplayButtonProps {
 
 export default function ReplayButton({ dlqId }: ReplayButtonProps) {
   const [isReplaying, setIsReplaying] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
   const handleReplay = async () => {
@@ -31,7 +32,11 @@ export default function ReplayButton({ dlqId }: ReplayButtonProps) {
       }
 
       // Refresh the current route to update the table UI
-      router.refresh();
+      startTransition(() => {
+        router.refresh();
+      });
+      // Once transition starts, we can immediately remove the loading spinner
+      setIsReplaying(false);
     } catch (error) {
       console.error('Error replaying job:', error);
       alert('Failed to replay job. Please check the console.');
@@ -44,19 +49,19 @@ export default function ReplayButton({ dlqId }: ReplayButtonProps) {
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       onClick={handleReplay}
-      disabled={isReplaying}
+      disabled={isReplaying || isPending}
       className={clsx(
         "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md border transition-all",
         "bg-[#09090b] border-white/10 text-slate-300 hover:text-white hover:border-indigo-500/50 hover:bg-indigo-500/10",
         "disabled:opacity-50 disabled:pointer-events-none"
       )}
     >
-      {isReplaying ? (
+      {(isReplaying || isPending) ? (
         <Loader2 className="w-3.5 h-3.5 animate-spin" />
       ) : (
         <RefreshCcw className="w-3.5 h-3.5" />
       )}
-      {isReplaying ? 'Replaying...' : 'Replay'}
+      {(isReplaying || isPending) ? 'Replaying...' : 'Replay'}
     </motion.button>
   );
 }

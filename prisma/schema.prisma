@@ -29,3 +29,13 @@ model DeadLetterQueue {
   errorReason String
   userId      String   @default("anonymous")
 }
+
+model UserSettings {
+  userId        String   @id
+  slackUrl      String?
+  discordUrl    String?
+  maxRetries    Int      @default(3)
+  webhookSecret String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
