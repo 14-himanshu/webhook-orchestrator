@@ -59,7 +59,9 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
             <SmoothScroll>
               {children}
-              <Toaster theme="dark" position="bottom-right" />
+              <Toaster theme="dark" position="bottom-right" richColors toastOptions={{
+                style: { background: '#0A0A0A', border: '1px solid #27272a', color: '#e4e4e7' }
+              }} />
             </SmoothScroll>
           </ThemeProvider>
         </body>

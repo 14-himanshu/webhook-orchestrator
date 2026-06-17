@@ -113,7 +113,8 @@ export default function WebhookSimulator() {
 
           
           <motion.div layout className="pt-2 shrink-0 mt-auto">
-            <button
+            <motion.button
+              whileTap={{ scale: 0.97 }}
               type="submit"
               disabled={status === 'loading'}
               className={clsx(
@@ -133,7 +134,7 @@ export default function WebhookSimulator() {
                   <span>Fire Webhook Event</span>
                 </>
               )}
-            </button>
+            </motion.button>
           </motion.div>
         </motion.form>
       </div>
