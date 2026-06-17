@@ -5,7 +5,7 @@ import { Loader2 } from 'lucide-react';
 import PayloadModal from './PayloadModal';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function JobRow({ job, index }: { job: any; index: number }) {
+export default function JobRow({ job }: { job: any }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (

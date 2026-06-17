@@ -34,7 +34,7 @@ export default function PayloadModal({ isOpen, onClose, data, type }: PayloadMod
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" onClick={onClose} data-lenis-prevent>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -60,14 +60,14 @@ export default function PayloadModal({ isOpen, onClose, data, type }: PayloadMod
             </div>
 
             {/* Content */}
-            <div className="p-6 overflow-y-auto space-y-6">
+            <div className="p-6 overflow-y-auto space-y-6" data-lenis-prevent>
               {/* Meta Info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
+                <div className="space-y-1 overflow-hidden">
                   <div className="text-[10px] uppercase tracking-widest font-medium text-zinc-500 flex items-center gap-1.5">
-                    <Link className="w-3 h-3" /> Target URL
+                    <Link className="w-3 h-3 shrink-0" /> Target URL
                   </div>
-                  <div className="text-xs font-mono text-zinc-300 break-all bg-zinc-900/50 p-2.5 rounded-lg border border-zinc-800/50">
+                  <div className="text-xs font-mono text-zinc-300 overflow-x-auto whitespace-nowrap bg-zinc-900/50 p-2.5 rounded-lg border border-zinc-800/50" data-lenis-prevent>
                     {url}
                   </div>
                 </div>
@@ -100,7 +100,7 @@ export default function PayloadModal({ isOpen, onClose, data, type }: PayloadMod
                 <div className="text-[10px] uppercase tracking-widest font-medium text-zinc-500 flex items-center gap-1.5">
                   <Code2 className="w-3 h-3" /> Request Payload
                 </div>
-                <div className="bg-[#09090b] p-4 rounded-lg border border-zinc-800 overflow-x-auto">
+                <div className="bg-[#09090b] p-4 rounded-lg border border-zinc-800 overflow-x-auto" data-lenis-prevent>
                   <pre className="text-xs font-mono text-zinc-300">
                     {JSON.stringify(payload, null, 2)}
                   </pre>
