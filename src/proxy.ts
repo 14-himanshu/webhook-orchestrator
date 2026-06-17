@@ -1,8 +1,8 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Ensure the ingestion webhook API is fully public because it is called by external third parties
+// The webhook ingestion endpoint is completely public, as are the sign-in/up routes
 // However, the simulator and the dashboard itself are protected
-const isPublicRoute = createRouteMatcher(["/api/webhook"]);
+const isPublicRoute = createRouteMatcher(["/api/webhook", "/sign-in(.*)", "/sign-up(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
   if (!isPublicRoute(req)) {

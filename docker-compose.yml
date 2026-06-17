@@ -34,8 +34,9 @@ services:
     command: npm run dev
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
-      - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis:6379
     depends_on:
       postgres:
@@ -59,8 +60,9 @@ services:
     build:
       context: .
       target: dev
+    env_file:
+      - .env
     environment:
-      - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis:6379
     depends_on:
       postgres:
