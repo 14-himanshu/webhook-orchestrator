@@ -4,6 +4,7 @@ import React from 'react';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import DeadLetterRow from '@/app/components/DeadLetterRow';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function ActionRequiredQueue({ dlqItems }: { dlqItems: any[] }) {
   return (
     <div className="rounded-xl bg-[#0A0A0A] border border-zinc-800 shadow-sm flex flex-col">
@@ -34,8 +35,9 @@ export default function ActionRequiredQueue({ dlqItems }: { dlqItems: any[] }) {
                 </td>
               </tr>
             ) : (
-              dlqItems.map((dlq: any, index: number) => (
-                <DeadLetterRow key={dlq.id} dlq={dlq} index={index} />
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              dlqItems.map((dlq: any) => (
+                <DeadLetterRow key={dlq.id} dlq={dlq} />
               ))
             )}
           </tbody>

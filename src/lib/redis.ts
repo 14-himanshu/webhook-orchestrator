@@ -5,7 +5,7 @@ const globalForRedis = global as unknown as { redis: Redis };
 export const redis =
   globalForRedis.redis || 
   (process.env.REDIS_URL 
-    ? new Redis(process.env.REDIS_URL) 
+    ? new Redis(process.env.REDIS_URL, { family: 0 }) 
     : new Redis(parseInt(process.env.REDIS_PORT || '6379', 10), process.env.REDIS_HOST || '127.0.0.1')
   );
 

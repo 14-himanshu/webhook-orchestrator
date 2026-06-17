@@ -8,7 +8,7 @@ import NumberTicker from '@/app/components/NumberTicker';
 import JobRow from '@/app/components/JobRow';
 import ActionRequiredQueue from '@/app/components/ActionRequiredQueue';
 import TrafficChart from '@/app/components/TrafficChart';
-import { ShieldCheck, Activity, CheckCircle2, XCircle, AlertCircle, Database, Server, Clock, Settings } from 'lucide-react';
+import { ShieldCheck, Activity, XCircle, Database, Server, Clock, Settings } from 'lucide-react';
 import * as motion from 'framer-motion/client';
 import { webhookQueue } from '@/queue/config';
 import { auth } from '@clerk/nextjs/server';
@@ -44,6 +44,7 @@ export default async function Dashboard() {
   const processingJobs = allProcessingJobs.filter(job => job.data.userId === userId);
 
   // --- TRAFFIC CHART AGGREGATION ---
+  // eslint-disable-next-line react-hooks/purity
   const sixtyMinutesAgo = new Date(Date.now() - 60 * 60 * 1000);
   const recentSuccessLogs = await prisma.webhookLog.findMany({
     where: { userId, deliveredAt: { gte: sixtyMinutesAgo } },
@@ -55,6 +56,7 @@ export default async function Dashboard() {
   });
 
   const chartBuckets = Array.from({ length: 6 }).map((_, i) => {
+    // eslint-disable-next-line react-hooks/purity
     const startOfInterval = new Date(Date.now() - (5 - i) * 10 * 60 * 1000);
     const label = startOfInterval.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
     return { time: label, success: 0, failed: 0, startMs: startOfInterval.getTime() };
@@ -219,7 +221,7 @@ export default async function Dashboard() {
                         </td>
                       </tr>
                     ) : (
-                      processingJobs.map((job, index) => (
+                      processingJobs.map((job) => (
                         <JobRow 
                           key={job.id} 
                           job={{
@@ -227,7 +229,6 @@ export default async function Dashboard() {
                             attemptsMade: job.attemptsMade,
                             data: { url: job.data.url, body: job.data.body }
                           }} 
-                          index={index} 
                         />
                       ))
                     )}

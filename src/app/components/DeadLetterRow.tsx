@@ -6,7 +6,7 @@ import ReplayButton from './ReplayButton';
 import PayloadModal from './PayloadModal';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function DeadLetterRow({ dlq, index }: { dlq: any; index: number }) {
+export default function DeadLetterRow({ dlq }: { dlq: any }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
