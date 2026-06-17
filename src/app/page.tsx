@@ -1,15 +1,20 @@
 import prisma from '@/lib/prisma';
-import ReplayButton from '@/app/components/ReplayButton';
+
 import WebhookSimulator from '@/app/components/WebhookSimulator';
 import BackgroundGrid from '@/app/components/BackgroundGrid';
-import AnimatedCounter from '@/app/components/AnimatedCounter';
 import AutoRefresh from '@/app/components/AutoRefresh';
-import ClientDate from '@/app/components/ClientDate';
-import { ShieldCheck, Activity, CheckCircle2, XCircle, AlertCircle, Database, Server, Loader2, Clock } from 'lucide-react';
+import SpotlightCard from '@/app/components/SpotlightCard';
+import NumberTicker from '@/app/components/NumberTicker';
+import JobRow from '@/app/components/JobRow';
+import DeadLetterRow from '@/app/components/DeadLetterRow';
+import { ShieldCheck, Activity, CheckCircle2, XCircle, AlertCircle, Database, Server, Clock, Settings } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 import * as motion from 'framer-motion/client';
 import { webhookQueue } from '@/queue/config';
 import { auth } from '@clerk/nextjs/server';
 import { UserButton } from '@clerk/nextjs';
+
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -30,7 +35,7 @@ export default async function Dashboard() {
   });
   const recentDLQ = await prisma.deadLetterQueue.findMany({
     where: { userId },
-    take: 10,
+    take: 100,
     orderBy: { failedAt: 'desc' },
   });
 
@@ -75,9 +80,16 @@ export default async function Dashboard() {
                 System Active
               </span>
             </div>
-            <div className="flex items-center justify-center border border-zinc-800 bg-[#0A0A0A] rounded-full p-1 w-8 h-8">
+            <div className="flex items-center gap-4">
+              <Link href="/settings" className="p-2 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded-lg transition-colors">
+                <Settings className="w-5 h-5" />
+              </Link>
               <UserButton 
-                appearance={{ elements: { userButtonAvatarBox: "w-6 h-6" } }}
+                appearance={{
+                  elements: {
+                    avatarBox: "w-9 h-9 border border-zinc-800"
+                  }
+                }}
               />
             </div>
           </div>
@@ -85,12 +97,7 @@ export default async function Dashboard() {
 
         {/* Top Section: Metrics */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.05 }}
-            className="rounded-xl bg-[#0A0A0A] border border-zinc-800 p-8 flex flex-col justify-between hover:border-zinc-700 transition-all duration-200"
-          >
+          <SpotlightCard delay={0.05} glowColor="rgba(99, 102, 241, 0.08)">
             <div className="flex items-center gap-3 mb-8">
               <div className="p-2 bg-zinc-900 rounded-lg border border-zinc-800">
                 <Database className="w-4 h-4 text-zinc-300" />
@@ -99,20 +106,15 @@ export default async function Dashboard() {
             </div>
             <div className="flex items-baseline gap-3">
               <span className="text-5xl font-medium tracking-tight text-white">
-                {successCount.toLocaleString()}
+                <NumberTicker value={successCount} />
               </span>
               <span className="text-zinc-500 font-medium flex items-center gap-1 text-xs uppercase tracking-wider">
                 <Activity className="w-3.5 h-3.5" /> Live
               </span>
             </div>
-          </motion.div>
+          </SpotlightCard>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-            className="rounded-xl bg-[#0A0A0A] border border-zinc-800 p-8 flex flex-col justify-between hover:border-zinc-700 transition-all duration-200"
-          >
+          <SpotlightCard delay={0.1} glowColor="rgba(244, 63, 94, 0.08)">
             <div className="flex items-center gap-3 mb-8">
               <div className="p-2 bg-zinc-900 rounded-lg border border-zinc-800">
                 <Server className="w-4 h-4 text-zinc-300" />
@@ -121,13 +123,13 @@ export default async function Dashboard() {
             </div>
             <div className="flex items-baseline gap-3">
               <span className="text-5xl font-medium tracking-tight text-white tabular-nums">
-                {failedCount.toLocaleString()}
+                <NumberTicker value={failedCount} />
               </span>
               <span className="text-zinc-500 font-medium flex items-center gap-1 text-xs uppercase tracking-wider">
                 <XCircle className="w-3.5 h-3.5" /> Failed
               </span>
             </div>
-          </motion.div>
+          </SpotlightCard>
         </section>
 
         {/* Bottom Section: Bento Box Grid */}
@@ -138,7 +140,7 @@ export default async function Dashboard() {
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.15 }}
-            className="lg:col-span-1"
+            className="lg:col-span-1 lg:sticky lg:top-8 self-start"
           >
             <WebhookSimulator />
           </motion.div>
@@ -169,6 +171,7 @@ export default async function Dashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-800/50">
+                    <AnimatePresence mode="popLayout">
                     {processingJobs.length === 0 ? (
                       <tr>
                         <td colSpan={3} className="px-6 py-16 text-center text-zinc-500">
@@ -181,36 +184,18 @@ export default async function Dashboard() {
                       </tr>
                     ) : (
                       processingJobs.map((job, index) => (
-                        <motion.tr 
-                          layout
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          transition={{ 
-                            opacity: { duration: 0.2, delay: index * 0.05 },
-                            layout: { type: "spring", stiffness: 300, damping: 30 }
-                          }}
+                        <JobRow 
                           key={job.id} 
-                          className="hover:bg-white/[0.02] transition-colors duration-200 ease-in-out group"
-                        >
-                          <td className="px-6 py-4 font-mono text-[13px] text-zinc-400">
-                            {job.id}
-                            <div className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">
-                              Attempt {job.attemptsMade}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-zinc-200 font-mono text-[13px] max-w-[16rem] truncate" title={job.data.url}>
-                            {job.data.url}
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="inline-flex items-center justify-end gap-2 text-zinc-300 bg-zinc-800 border border-zinc-700 px-3 py-1.5 rounded-full text-[10px] font-medium tracking-widest uppercase">
-                              <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-400" />
-                              Processing
-                            </div>
-                          </td>
-                        </motion.tr>
+                          job={{
+                            id: job.id,
+                            attemptsMade: job.attemptsMade,
+                            data: { url: job.data.url, body: job.data.body }
+                          }} 
+                          index={index} 
+                        />
                       ))
                     )}
+                    </AnimatePresence>
                   </tbody>
                 </table>
               </div>
@@ -234,6 +219,7 @@ export default async function Dashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-800/50">
+                    <AnimatePresence mode="popLayout">
                     {recentDLQ.length === 0 ? (
                       <tr>
                         <td colSpan={3} className="px-6 py-16 text-center text-zinc-500">
@@ -245,37 +231,12 @@ export default async function Dashboard() {
                         </td>
                       </tr>
                     ) : (
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       recentDLQ.map((dlq: any, index: number) => (
-                        <motion.tr 
-                          layout
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          transition={{ 
-                            opacity: { duration: 0.2, delay: 0.2 + (index * 0.05) },
-                            layout: { type: "spring", stiffness: 300, damping: 30 }
-                          }}
-                          key={dlq.id} 
-                          className="hover:bg-white/[0.02] transition-colors duration-200 ease-in-out group"
-                        >
-                          <td className="px-6 py-4 font-mono text-[13px] text-zinc-400">
-                            {dlq.jobId}
-                            <div className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">
-                              <ClientDate date={dlq.failedAt} />
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-zinc-200 font-mono text-[13px] max-w-[16rem] truncate" title={dlq.targetUrl}>
-                            {dlq.targetUrl}
-                            <div className="text-rose-400/80 text-[11px] truncate mt-1 font-sans font-medium" title={dlq.errorReason}>
-                              {dlq.errorReason}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <ReplayButton dlqId={dlq.id} />
-                          </td>
-                        </motion.tr>
+                        <DeadLetterRow key={dlq.id} dlq={dlq} index={index} />
                       ))
                     )}
+                    </AnimatePresence>
                   </tbody>
                 </table>
               </div>

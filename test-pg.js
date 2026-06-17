@@ -1,3 +1,4 @@
+/* eslint-disable */
 const { Pool } = require('pg');
 try {
   const pool = new Pool({ connectionString: 'prisma+postgres://accelerate.prisma-data.net/?api_key=ey...' });

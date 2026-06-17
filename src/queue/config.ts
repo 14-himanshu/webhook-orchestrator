@@ -16,6 +16,7 @@ if (connection instanceof Redis) {
 }
 
 export const webhookQueue = new Queue('incoming-webhooks', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   connection: connection as any,
   defaultJobOptions: {
     attempts: 5,
