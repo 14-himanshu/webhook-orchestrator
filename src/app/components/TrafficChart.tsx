@@ -17,13 +17,13 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return (
       <div className="bg-[#0A0A0A] border border-zinc-800 p-3 rounded-md shadow-lg flex flex-col gap-2 min-w-[140px]">
         <p className="text-[11px] font-medium text-zinc-500 mb-1">{label}</p>
-        {payload.map((entry, index) => (
+        {payload.map((entry: { name: string; value: string | number }, index: number) => (
           <div key={index} className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <div 
                 className={clsx(
                   "w-1.5 h-1.5 rounded-full",
-                  entry.name === 'success' ? 'bg-emerald-500' : 'bg-rose-500'
+                  entry.name === 'success' ? 'bg-indigo-500' : 'bg-rose-500'
                 )}
               ></div>
               <span className="text-xs text-zinc-300 capitalize">
@@ -52,7 +52,7 @@ export default function TrafficChart({ data }: { data: ChartDataPoint[] }) {
         </div>
         <div className="flex items-center gap-4 text-[11px] font-medium">
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+            <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
             <span className="text-zinc-400">Delivered</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -67,8 +67,8 @@ export default function TrafficChart({ data }: { data: ChartDataPoint[] }) {
           <AreaChart data={data} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="colorSuccess" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
-                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2}/>
+                <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
               </linearGradient>
               <linearGradient id="colorFailed" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2}/>
@@ -95,11 +95,11 @@ export default function TrafficChart({ data }: { data: ChartDataPoint[] }) {
             <Area 
               type="monotone" 
               dataKey="success" 
-              stroke="#10b981" 
+              stroke="#6366f1" 
               strokeWidth={2}
               fillOpacity={1} 
               fill="url(#colorSuccess)" 
-              activeDot={{ r: 4, strokeWidth: 0, fill: '#10b981' }}
+              activeDot={{ r: 4, strokeWidth: 0, fill: '#6366f1' }}
             />
             <Area 
               type="monotone" 
