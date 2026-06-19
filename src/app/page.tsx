@@ -41,7 +41,15 @@ export default async function Dashboard() {
 
   // Fetch jobs that are currently pending, active, or waiting for a retry (delayed)
   const allProcessingJobs = await webhookQueue.getJobs(['active', 'waiting', 'delayed']);
-  const processingJobs = allProcessingJobs.filter(job => job.data.userId === userId);
+  const rawProcessingJobs = allProcessingJobs.filter(job => job.data.userId === userId);
+
+  // Serialize complex BullMQ Job instances into plain JSON objects for the Client Component
+  const processingJobs = rawProcessingJobs.map(job => ({
+    id: job.id,
+    url: job.data.url,
+    body: job.data.body,
+    attemptsMade: job.attemptsMade || 0
+  }));
 
   // --- TRAFFIC CHART AGGREGATION ---
   // eslint-disable-next-line react-hooks/purity
