@@ -6,10 +6,18 @@ import prisma from './lib/prisma';
 
 // Connection settings for Redis. In production, these should come from environment variables.
 const connection = process.env.REDIS_URL 
-  ? new Redis(process.env.REDIS_URL, { maxRetriesPerRequest: null, family: 0 }) 
+  ? new Redis(process.env.REDIS_URL, { 
+      maxRetriesPerRequest: null, 
+      family: 0, 
+      enableOfflineQueue: false,
+      keepAlive: 10000 
+    }) 
   : {
       host: process.env.REDIS_HOST || '127.0.0.1',
       port: parseInt(process.env.REDIS_PORT || '6379', 10),
+      maxRetriesPerRequest: null,
+      enableOfflineQueue: false,
+      keepAlive: 10000
     };
 
 // DUMMY HTTP SERVER: This is a clever trick to allow deploying this worker
@@ -137,6 +145,10 @@ worker.on('failed', async (job: Job | undefined, err: Error) => {
         errorReason: err.message,
         userId: job.data.userId,
       });
+
+      // Clear the job from Redis to prevent memory leaks ONLY AFTER it's safely in Postgres
+      await job.remove();
+      console.log(`[Job ${job.id}] safely removed from Redis.`)
     } catch (dbError) {
       console.error(`[Job ${job.id}] failed to log permanent failure to database:`, dbError);
     }
