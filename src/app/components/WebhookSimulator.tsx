@@ -3,13 +3,11 @@
 import { useState } from 'react';
 import { Send, Loader2, Terminal } from 'lucide-react';
 import clsx from 'clsx';
-import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { emitJobAdded } from '@/utils/jobEvents';
 
 export default function WebhookSimulator() {
-  const router = useRouter();
-  
   const [targetUrl, setTargetUrl] = useState('https://jsonplaceholder.typicode.com/posts');
   const [payloadStr, setPayloadStr] = useState('{\n  "event": "test_ping",\n  "timestamp": "' + new Date().toISOString() + '"\n}');
   const [status, setStatus] = useState<'idle' | 'loading'>('idle');
@@ -56,8 +54,8 @@ export default function WebhookSimulator() {
       setStatus('idle');
       toast.success(`Job queued with ID: ${data.jobId}`);
       
-      // Refresh the page data in the background to update the DLQ table if necessary
-      setTimeout(() => router.refresh(), 1000);
+      // Dispatch event to show the job in the real-time Processing Queue
+      emitJobAdded(data.jobId, targetUrl, parsedPayload);
       
     } catch (err: unknown) {
       const error = err as Error;

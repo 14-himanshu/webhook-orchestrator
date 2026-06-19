@@ -5,10 +5,10 @@ import BackgroundGrid from '@/app/components/BackgroundGrid';
 import AutoRefresh from '@/app/components/AutoRefresh';
 import SpotlightCard from '@/app/components/SpotlightCard';
 import NumberTicker from '@/app/components/NumberTicker';
-import JobRow from '@/app/components/JobRow';
+import ProcessingQueueClient from '@/app/components/ProcessingQueueClient';
 import ActionRequiredQueue from '@/app/components/ActionRequiredQueue';
 import TrafficChart from '@/app/components/TrafficChart';
-import { ShieldCheck, Activity, XCircle, Database, Server, Clock, Settings } from 'lucide-react';
+import { ShieldCheck, Activity, XCircle, Database, Server, Settings } from 'lucide-react';
 import * as motion from 'framer-motion/client';
 import { webhookQueue } from '@/queue/config';
 import { auth } from '@clerk/nextjs/server';
@@ -192,50 +192,8 @@ export default async function Dashboard() {
             className="lg:col-span-2 flex flex-col gap-6"
           >
             
-            {/* Processing Queue */}
-            <div className="rounded-xl bg-[#0A0A0A] border border-zinc-800 shadow-sm flex flex-col">
-              <div className="px-6 py-5 border-b border-zinc-800 bg-zinc-900/50 flex items-center shrink-0">
-                <h3 className="text-xs font-medium text-zinc-300 uppercase tracking-widest flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-zinc-400" />
-                  Processing Queue
-                </h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest border-b border-zinc-800 bg-zinc-900 sticky top-0 z-10">
-                    <tr>
-                      <th scope="col" className="px-6 py-4">Job ID</th>
-                      <th scope="col" className="px-6 py-4">Target URL</th>
-                      <th scope="col" className="px-6 py-4 text-right">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-800/50">
-                    {processingJobs.length === 0 ? (
-                      <tr>
-                        <td colSpan={3} className="px-6 py-8 text-center text-zinc-500">
-                          <div className="flex flex-col items-center justify-center">
-                            <Activity className="w-5 h-5 text-zinc-600 mb-3" />
-                            <p className="text-sm font-medium text-zinc-400">No active jobs</p>
-                            <p className="text-[11px] mt-1 text-zinc-600">The processing queue is empty.</p>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      processingJobs.map((job) => (
-                        <JobRow 
-                          key={job.id} 
-                          job={{
-                            id: job.id,
-                            attemptsMade: job.attemptsMade,
-                            data: { url: job.data.url, body: job.data.body }
-                          }} 
-                        />
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            {/* Processing Queue (Real-time Client Component) */}
+            <ProcessingQueueClient initialJobs={processingJobs} />
 
             {/* Action Required Queue (Paginated Client Component) */}
             <ActionRequiredQueue dlqItems={recentDLQ} />
