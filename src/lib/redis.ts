@@ -5,8 +5,15 @@ const globalForRedis = global as unknown as { redis: Redis };
 export const redis =
   globalForRedis.redis || 
   (process.env.REDIS_URL 
-    ? new Redis(process.env.REDIS_URL, { family: 0 }) 
-    : new Redis(parseInt(process.env.REDIS_PORT || '6379', 10), process.env.REDIS_HOST || '127.0.0.1')
+    ? new Redis(process.env.REDIS_URL, { 
+        family: 0, 
+        enableOfflineQueue: false,
+        keepAlive: 10000 
+      }) 
+    : new Redis(parseInt(process.env.REDIS_PORT || '6379', 10), process.env.REDIS_HOST || '127.0.0.1', { 
+        enableOfflineQueue: false,
+        keepAlive: 10000 
+      })
   );
 
 if (process.env.NODE_ENV !== 'production') globalForRedis.redis = redis;
