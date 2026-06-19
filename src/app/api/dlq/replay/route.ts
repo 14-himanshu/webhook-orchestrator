@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     const outgoingSignature = crypto.createHmac('sha256', WEBHOOK_SECRET).update(payloadString).digest('hex');
 
     // Re-queue the job in BullMQ
-    await webhookQueue.add('deliver-webhook', {
+    const job = await webhookQueue.add('deliver-webhook', {
       url: dlqRecord.targetUrl,
       body: payload,
       signature: outgoingSignature,
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
       where: { id: dlqId },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, jobId: job.id, url: dlqRecord.targetUrl, body: payload });
   } catch (error) {
     console.error('Replay API Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
