@@ -5,19 +5,24 @@ import * as http from 'http';
 import prisma from './lib/prisma';
 
 // Connection settings for Redis. In production, these should come from environment variables.
-const connection = process.env.REDIS_URL 
-  ? new Redis(process.env.REDIS_URL, { 
-      maxRetriesPerRequest: null, 
-      family: 0, 
+const redisUrl = process.env.REDIS_URL;
+// Upstash uses rediss:// (TLS). ioredis needs the tls option enabled for it.
+const isTls = redisUrl?.startsWith('rediss://');
+
+const connection = redisUrl
+  ? new Redis(redisUrl, {
+      maxRetriesPerRequest: null,
+      family: 0,
       enableOfflineQueue: false,
-      keepAlive: 10000 
-    }) 
+      keepAlive: 10000,
+      ...(isTls ? { tls: {} } : {}),
+    })
   : {
       host: process.env.REDIS_HOST || '127.0.0.1',
       port: parseInt(process.env.REDIS_PORT || '6379', 10),
       maxRetriesPerRequest: null,
       enableOfflineQueue: false,
-      keepAlive: 10000
+      keepAlive: 10000,
     };
 
 // DUMMY HTTP SERVER: This is a clever trick to allow deploying this worker
