@@ -137,22 +137,24 @@ export default async function Dashboard() {
 
         {/* Top Section: Metrics */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <SpotlightCard delay={0.05} glowColor="rgba(99, 102, 241, 0.08)">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 bg-zinc-900 rounded-lg border border-zinc-800">
-                <Database className="w-4 h-4 text-zinc-300" />
+          <Link href="/history" className="block group">
+            <SpotlightCard delay={0.05} glowColor="rgba(99, 102, 241, 0.08)">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="p-2 bg-zinc-900 rounded-lg border border-zinc-800">
+                  <Database className="w-4 h-4 text-zinc-300" />
+                </div>
+                <h2 className="text-xs font-medium text-zinc-500 uppercase tracking-widest">Total Delivered</h2>
               </div>
-              <h2 className="text-xs font-medium text-zinc-500 uppercase tracking-widest">Total Delivered</h2>
-            </div>
-            <div className="flex items-baseline gap-3">
-              <span className="text-5xl font-medium tracking-tight text-white">
-                <NumberTicker value={successCount} />
-              </span>
-              <span className="text-zinc-500 font-medium flex items-center gap-1 text-xs uppercase tracking-wider">
-                <Activity className="w-3.5 h-3.5" /> Live
-              </span>
-            </div>
-          </SpotlightCard>
+              <div className="flex items-baseline gap-3">
+                <span className="text-5xl font-medium tracking-tight text-white">
+                  <NumberTicker value={successCount} />
+                </span>
+                <span className="text-zinc-500 font-medium flex items-center gap-1 text-xs uppercase tracking-wider group-hover:text-indigo-400 transition-colors">
+                  <Activity className="w-3.5 h-3.5" /> View History →
+                </span>
+              </div>
+            </SpotlightCard>
+          </Link>
 
           <SpotlightCard delay={0.1} glowColor="rgba(244, 63, 94, 0.08)">
             <div className="flex items-center gap-3 mb-8">

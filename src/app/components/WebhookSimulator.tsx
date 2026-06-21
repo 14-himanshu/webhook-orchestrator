@@ -9,7 +9,9 @@ import { emitJobAdded } from '@/utils/jobEvents';
 
 export default function WebhookSimulator() {
   const [targetUrl, setTargetUrl] = useState('https://jsonplaceholder.typicode.com/posts');
-  const [payloadStr, setPayloadStr] = useState('{\n  "event": "test_ping",\n  "timestamp": "' + new Date().toISOString() + '"\n}');
+  const [payloadStr, setPayloadStr] = useState(() => 
+    `{\n  "event": "test_ping",\n  "timestamp": "${new Date().toISOString()}"\n}`
+  );
   const [status, setStatus] = useState<'idle' | 'loading'>('idle');
 
   const handleFireWebhook = async (e: React.FormEvent) => {
