@@ -4,7 +4,7 @@ import { auth } from '@clerk/nextjs/server';
 import { webhookQueue } from '@/queue/config';
 import crypto from 'crypto';
 
-const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'default_secret_key_for_testing';
+const DEFAULT_WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'default_secret_key_for_testing';
 
 export async function POST(request: Request) {
   try {
@@ -32,6 +32,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // Fetch the user's per-tenant secret so the replayed signature matches
+    // what ingestWebhook() will verify against. Without this, users with a
+    // custom webhookSecret would always get a 401 on replay.
+    const settings = await prisma.userSettings.findUnique({ where: { userId } });
+    const activeSecret = settings?.webhookSecret || DEFAULT_WEBHOOK_SECRET;
+
     // Prepare payload with replay idempotency flags
     let payload = dlqRecord.payload;
     if (typeof payload === 'object' && payload !== null && !Array.isArray(payload)) {
@@ -42,19 +48,22 @@ export async function POST(request: Request) {
       };
     }
 
-    // Generate a fresh signature for the modified payload
+    // Generate a fresh signature using the user's active secret
     const payloadString = JSON.stringify(payload);
-    const outgoingSignature = crypto.createHmac('sha256', WEBHOOK_SECRET).update(payloadString).digest('hex');
+    const outgoingSignature = crypto
+      .createHmac('sha256', activeSecret)
+      .update(payloadString)
+      .digest('hex');
 
     // Re-queue the job in BullMQ
     const job = await webhookQueue.add('deliver-webhook', {
       url: dlqRecord.targetUrl,
       body: payload,
       signature: outgoingSignature,
-      userId: userId, // Ensure replayed job preserves tenant ID
+      userId: userId,
     });
 
-    // Delete the record from DLQ
+    // Delete the record from DLQ only after successfully re-queuing
     await prisma.deadLetterQueue.delete({
       where: { id: dlqId },
     });
@@ -65,3 +74,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+

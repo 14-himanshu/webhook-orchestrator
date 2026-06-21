@@ -2,7 +2,6 @@ import prisma from '@/lib/prisma';
 
 import WebhookSimulator from '@/app/components/WebhookSimulator';
 import BackgroundGrid from '@/app/components/BackgroundGrid';
-import AutoRefresh from '@/app/components/AutoRefresh';
 import SpotlightCard from '@/app/components/SpotlightCard';
 import NumberTicker from '@/app/components/NumberTicker';
 import ProcessingQueueClient from '@/app/components/ProcessingQueueClient';
@@ -88,7 +87,6 @@ export default async function Dashboard() {
   return (
     <main className="min-h-screen flex flex-col font-sans selection:bg-indigo-500/30 relative text-zinc-300">
       <BackgroundGrid />
-      <AutoRefresh interval={2000} />
       
       <div className="max-w-[85rem] w-full mx-auto px-6 sm:px-8 py-12 space-y-8 relative z-10">
         

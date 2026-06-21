@@ -18,6 +18,10 @@ model WebhookLog {
   payload     Json
   deliveredAt DateTime @default(now())
   userId      String   @default("anonymous")
+
+  @@index([userId])
+  @@index([jobId])
+  @@index([userId, deliveredAt])
 }
 
 model DeadLetterQueue {
@@ -28,7 +32,12 @@ model DeadLetterQueue {
   failedAt    DateTime @default(now())
   errorReason String
   userId      String   @default("anonymous")
+
+  @@index([userId])
+  @@index([jobId])
+  @@index([userId, failedAt])
 }
+
 
 model UserSettings {
   userId        String   @id
