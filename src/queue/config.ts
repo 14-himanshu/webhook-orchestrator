@@ -1,25 +1,30 @@
 import { Queue } from 'bullmq';
 import Redis from 'ioredis';
 
-const connection = process.env.REDIS_URL 
-  ? new Redis(process.env.REDIS_URL, { 
-      maxRetriesPerRequest: null, 
-      family: 0, 
+const redisUrl = process.env.REDIS_URL;
+// Upstash uses rediss:// (TLS). ioredis needs the tls option for it.
+const isTls = redisUrl?.startsWith('rediss://');
+
+const connection = redisUrl
+  ? new Redis(redisUrl, {
+      maxRetriesPerRequest: null,
+      family: 0,
       enableOfflineQueue: false,
-      keepAlive: 10000 
-    }) 
+      keepAlive: 10000,
+      ...(isTls ? { tls: {} } : {}),
+    })
   : {
       host: process.env.REDIS_HOST || '127.0.0.1',
       port: parseInt(process.env.REDIS_PORT || '6379', 10),
       maxRetriesPerRequest: null,
       enableOfflineQueue: false,
-      keepAlive: 10000
+      keepAlive: 10000,
     };
 
 if (connection instanceof Redis) {
   connection.on('error', (err) => {
-    if (process.env.VERCEL || process.env.NODE_ENV === 'production') return;
-    console.error('Redis Queue connection error:', err.message);
+    // Always log — silent failures here cause the queue to hang with no feedback
+    console.error('[BullMQ Redis] Connection error:', err.message);
   });
 }
 
