@@ -1,18 +1,30 @@
 'use client';
 
-import React from 'react';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import DeadLetterRow from '@/app/components/DeadLetterRow';
+import type { DLQItem } from '@/types/webhook';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function ActionRequiredQueue({ dlqItems }: { dlqItems: any[] }) {
+const PAGE_SIZE = 10;
+
+export default function ActionRequiredQueue({ dlqItems }: { dlqItems: DLQItem[] }) {
+  const [page, setPage] = useState(0);
+
+  const totalPages = Math.ceil(dlqItems.length / PAGE_SIZE);
+  const pageItems = dlqItems.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
   return (
     <div className="rounded-xl bg-[#0A0A0A] border border-zinc-800 shadow-sm flex flex-col">
-      <div className="px-6 py-5 border-b border-zinc-800 bg-zinc-900/50 flex items-center shrink-0">
+      <div className="px-6 py-5 border-b border-zinc-800 bg-zinc-900/50 flex items-center justify-between shrink-0">
         <h3 className="text-xs font-medium text-zinc-300 uppercase tracking-widest flex items-center gap-2">
           <AlertCircle className="w-4 h-4 text-zinc-400" />
           Action Required Queue
         </h3>
+        {dlqItems.length > 0 && (
+          <span className="text-[11px] text-zinc-500 font-medium">
+            {dlqItems.length} item{dlqItems.length !== 1 ? 's' : ''}
+          </span>
+        )}
       </div>
       <div className="overflow-x-auto overflow-y-auto max-h-[400px] flex flex-col justify-between" data-lenis-prevent>
         <table className="w-full text-left">
@@ -35,14 +47,39 @@ export default function ActionRequiredQueue({ dlqItems }: { dlqItems: any[] }) {
                 </td>
               </tr>
             ) : (
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              dlqItems.map((dlq: any) => (
+              pageItems.map((dlq: DLQItem) => (
                 <DeadLetterRow key={dlq.id} dlq={dlq} />
               ))
             )}
           </tbody>
         </table>
       </div>
+
+      {/* Pagination controls */}
+      {totalPages > 1 && (
+        <div className="px-6 py-3 border-t border-zinc-800 bg-zinc-900/30 flex items-center justify-between">
+          <span className="text-[11px] text-zinc-500">
+            Page {page + 1} of {totalPages}
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage(p => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
+              className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

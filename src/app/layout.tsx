@@ -55,7 +55,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased dark`}
         suppressHydrationWarning
       >
-        <body className="min-h-screen flex flex-col bg-[#0a0a0c] text-slate-200 selection:bg-indigo-500/30">
+        <body className="min-h-screen flex flex-col bg-[#0a0a0c] text-slate-200 selection:bg-indigo-500/30" suppressHydrationWarning>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
             <SmoothScroll>
               {children}
