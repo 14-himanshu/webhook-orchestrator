@@ -20,15 +20,15 @@ The system is separated into a four-tier architecture to decouple the ingestion 
 
 ```mermaid
 flowchart LR
-    Sender([Client / Sender]) --> |POST /api/webhook| Web[Next.js Ingestion API]
-    Web --> |Push Job| Queue[(Redis Queue)]
-    Queue --> |Pop Job| Worker[Node/BullMQ Worker]
+    Sender(["Client / Sender"]) --> |POST /api/webhook| Web["Next.js Ingestion API"]
+    Web --> |Push Job| Queue[("Redis Queue")]
+    Queue --> |Pop Job| Worker["Node/BullMQ Worker"]
     
-    Worker --> |fetch()| TargetServer([Target Server])
+    Worker --> |fetch()| TargetServer(["Target Server"])
     Worker -.-> |Exponential Backoff| TargetServer
     
-    Worker --> |Log Success| DB[(PostgreSQL)]
-    Worker --> |Log Permanent Failure| DLQ[(Dead Letter Queue)]
+    Worker --> |Log Success| DB[("PostgreSQL")]
+    Worker --> |Log Permanent Failure| DLQ[("Dead Letter Queue")]
 ```
 
 ## Key Technical Decisions
