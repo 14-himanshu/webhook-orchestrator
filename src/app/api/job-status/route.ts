@@ -7,10 +7,11 @@ const STATUS_CACHE_TTL = 5; // seconds
 
 export async function GET(request: Request) {
   try {
-    const { userId } = await auth();
+    const { userId, orgId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const tenantId = orgId || userId;
 
     const { searchParams } = new URL(request.url);
     const jobId = searchParams.get('id');
@@ -26,39 +27,28 @@ export async function GET(request: Request) {
       return NextResponse.json(JSON.parse(cached));
     }
 
-    // Check if it completed successfully
-    const successLog = await prisma.webhookLog.findFirst({
+    const event = await prisma.event.findUnique({
       where: { jobId },
+      select: { tenantId: true, status: true, attempts: { orderBy: { attemptNumber: 'desc' }, take: 1, select: { errorReason: true } } }
     });
 
-    if (successLog) {
-      if (successLog.userId !== userId) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-      }
-      const result = { status: 'completed' };
-      // Cache terminal states longer — they won't change
-      await redis.set(cacheKey, JSON.stringify(result), 'EX', 60);
-      return NextResponse.json(result);
+    if (!event) {
+      return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
 
-    // Check if it permanently failed
-    const dlqLog = await prisma.deadLetterQueue.findFirst({
-      where: { jobId },
-    });
-
-    if (dlqLog) {
-      if (dlqLog.userId !== userId) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-      }
-      const result = { status: 'failed', errorReason: dlqLog.errorReason };
-      // Cache terminal states longer — they won't change
-      await redis.set(cacheKey, JSON.stringify(result), 'EX', 60);
-      return NextResponse.json(result);
+    if (event.tenantId !== tenantId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Still processing — cache briefly so rapid polls don't all hit Postgres
-    const result = { status: 'processing' };
-    await redis.set(cacheKey, JSON.stringify(result), 'EX', STATUS_CACHE_TTL);
+    const result: { status: string; errorReason?: string } = { status: event.status };
+    if (event.status === 'failed') {
+      result.errorReason = event.attempts[0]?.errorReason || 'Unknown error';
+    }
+
+    // Cache terminal states longer, processing states briefly
+    const ttl = event.status === 'processing' ? STATUS_CACHE_TTL : 60;
+    await redis.set(cacheKey, JSON.stringify(result), 'EX', ttl);
+    
     return NextResponse.json(result);
   } catch (error) {
     console.error('Job Status API Error:', error);

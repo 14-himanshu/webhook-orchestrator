@@ -7,10 +7,11 @@ const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'default_secret_key_for_tes
 
 export async function POST(request: Request) {
   try {
-    const { userId } = await auth();
+    const { userId, orgId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const tenantId = orgId || userId;
 
     const rawBody = await request.text();
 
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
       rawBody,
       signature,
       crypto.randomUUID(), // fresh idempotency key per request
-      userId,
+      tenantId,
     );
 
     if (!result.success) {

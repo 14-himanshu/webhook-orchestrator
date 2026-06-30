@@ -24,10 +24,10 @@ export async function ingestWebhook(
   rawBody: string,
   incomingSignature: string | null,
   idempotencyKey: string | null,
-  userId: string,
+  tenantId: string,
 ): Promise<IngestResult> {
   // 1. Fetch per-tenant settings
-  const settings = await prisma.userSettings.findUnique({ where: { userId } });
+  const settings = await prisma.tenantSettings.findUnique({ where: { tenantId } });
   const activeSecret = settings?.webhookSecret || DEFAULT_WEBHOOK_SECRET;
   const activeMaxRetries = settings?.maxRetries || 3;
 
@@ -56,9 +56,9 @@ export async function ingestWebhook(
   }
   const body = validationResult.data;
 
-  // 4. Atomic Rate Limit (per Target URL)
-  const currentMinute = new Date().getMinutes();
-  const rateLimitKey = `rate-limit:targetUrl:${body.targetUrl}:${currentMinute}`;
+  // 4. Rate Limiting (100 req/sec per tenant to prevent Redis/Queue overflow)
+  const currentSecond = Math.floor(Date.now() / 1000);
+  const rateLimitKey = `ingest-rate-limit:${tenantId}:${currentSecond}`;
   const pipeline = redis.multi();
   pipeline.incr(rateLimitKey);
   pipeline.expire(rateLimitKey, 60);
@@ -92,13 +92,24 @@ export async function ingestWebhook(
       url: body.targetUrl,
       body: body.payload || {},
       signature: outgoingSignature,
-      userId,
+      userId: tenantId, // Keeping the job payload key as userId for backward compatibility in worker if needed, or rename to tenantId. Wait, let's rename to tenantId!
+      tenantId,
     },
     {
       attempts: activeMaxRetries,
       backoff: { type: 'exponential', delay: 1000 },
     },
   );
+
+  await prisma.event.create({
+    data: {
+      jobId: job.id!,
+      targetUrl: body.targetUrl,
+      payload: body.payload || {},
+      status: 'processing',
+      tenantId,
+    }
+  });
 
   return { success: true, jobId: job.id! };
 }

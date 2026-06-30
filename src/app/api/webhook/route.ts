@@ -4,11 +4,11 @@ import { ingestWebhook } from '@/lib/ingestWebhook';
 export async function POST(request: Request) {
   try {
     const rawBody = await request.text();
-    const userId = request.headers.get('x-user-id');
+    const tenantId = request.headers.get('x-tenant-id');
 
-    if (!userId) {
+    if (!tenantId) {
       return NextResponse.json(
-        { error: 'x-user-id header is required for multi-tenant mapping' },
+        { error: 'x-tenant-id header is required for multi-tenant mapping' },
         { status: 401 },
       );
     }
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       rawBody,
       request.headers.get('x-signature'),
       request.headers.get('x-idempotency-key'),
-      userId,
+      tenantId,
     );
 
     if (!result.success) {

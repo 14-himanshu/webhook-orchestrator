@@ -1,17 +1,1 @@
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Cutout mask to slice the circle precisely where the X crosses -->
-  <defs>
-    <mask id="cutout">
-      <rect width="512" height="512" fill="white" />
-      <path d="M 50 150 C 200 150, 256 256, 462 362 C 300 362, 256 256, 50 150" fill="black" />
-      <path d="M 50 362 C 200 362, 256 256, 462 150 C 300 150, 256 256, 50 362" fill="black" />
-    </mask>
-  </defs>
-
-  <!-- The indigo circle that matches the exact brand color -->
-  <circle cx="256" cy="256" r="110" fill="#6366f1" mask="url(#cutout)" />
-  
-  <!-- The swooping X symbol customized to contrast beautifully against the dark theme -->
-  <path d="M 80 170 C 210 170, 256 256, 432 342 C 290 342, 256 256, 80 170" fill="#ffffff" />
-  <path d="M 80 342 C 210 342, 256 256, 432 170 C 290 170, 256 256, 80 342" fill="#ffffff" />
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-webhook"><path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2"/><path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06"/><path d="m12 6 3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8"/></svg>
