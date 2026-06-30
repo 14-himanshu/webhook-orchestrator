@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./public/icon.svg" width="100" height="100" alt="Webhook Orchestrator Icon" />
+  <img src="src/app/icon.svg" width="100" height="100" alt="Webhook Orchestrator Icon" />
   <h1>Webhook Orchestrator</h1>
   <p><strong>Fault-Tolerant Distributed Delivery System</strong></p>
 
