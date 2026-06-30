@@ -1,6 +1,18 @@
-# Webhook Orchestrator: Fault-Tolerant Distributed Delivery System
+<div align="center">
+  <img src="./public/icon.svg" width="100" height="100" alt="Webhook Orchestrator Icon" />
+  <h1>Webhook Orchestrator</h1>
+  <p><strong>Fault-Tolerant Distributed Delivery System</strong></p>
 
-> A resilient, fault-tolerant distributed system engineered to handle asynchronous webhook ingestion and delivery. Instead of a standard CRUD app, this system is designed with enterprise-grade reliability in mind, utilizing background queues, exponential backoff retries, and a persistent Dead Letter Queue (DLQ) to ensure 100% observability and reliability.
+  [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat&logo=next.js)](https://nextjs.org/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
+  [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=flat&logo=postgresql)](https://www.postgresql.org/)
+  [![Redis](https://img.shields.io/badge/Redis-BullMQ-DC382D?style=flat&logo=redis)](https://redis.io/)
+  [![Clerk](https://img.shields.io/badge/Auth-Clerk-6C47FF?style=flat)](https://clerk.dev/)
+</div>
+
+<br/>
+
+> A resilient, fault-tolerant distributed system engineered to handle asynchronous webhook ingestion and delivery. Built for enterprise scale, this orchestrator features true **Multi-Tenancy**, background queues, exponential backoff retries, and a persistent Dead Letter Queue (DLQ) to ensure 100% observability and reliability.
 
 ## Architecture Overview
 
@@ -21,13 +33,14 @@ flowchart LR
 
 ## Key Technical Decisions
 
+- **True Multi-Tenancy**: Built with enterprise architectures in mind. The entire system separates data by `tenantId` (resolving securely via Clerk Organizations or individual Users). Rate limits, webhook secrets, and history are strictly isolated per-tenant.
 - **Decoupled Architecture**: We strictly separated the Ingestion API from the Worker Process. In a typical serverless environment (like Vercel), long-running HTTP connections are killed if they exceed timeout limits. By dumping the payload directly into Redis, the Next.js API instantly returns a `202 Accepted` to the sender, ensuring we never drop an incoming webhook due to timeouts.
 - **Idempotent Processing**: Network glitches happen. If a client sends the exact same webhook twice, the Next.js API checks the `Idempotency-Key` header against Redis. Duplicate payloads are ignored and instantly return a `202 Accepted` without spawning redundant background jobs.
 - **Token-Bucket Rate Limiting**: To protect the ingestion API from DDoS attacks or runaway client scripts, a Redis-backed rate limiter strictly limits clients to a maximum number of requests per minute, returning `HTTP 429 Too Many Requests` if exceeded.
 - **Worker Rate Limiting**: To protect downstream APIs from DDoS attacks during massive traffic spikes, the BullMQ worker uses a token-bucket rate limiter to globally cap processing at 10 jobs per second, safely buffering the overflow in Redis.
 - **Cryptographic Signatures (Security)**: The Ingestion API enforces zero-trust security. It requires an `x-signature` header on all incoming requests and verifies it against an HMAC SHA-256 hash using a secret key. Additionally, the worker attaches its own signature to outgoing requests so target servers can verify authenticity.
-- **Exponential Backoff**: Downstream services can experience outages. The worker automatically retries failed deliveries up to 5 times, increasing the delay exponentially between each attempt.
-- **Dead Letter Queue (DLQ)**: If a webhook exhausts all 5 of its retry attempts, it is caught and permanently logged into the PostgreSQL Dead Letter Queue. This prevents poison messages from blocking the queue indefinitely while ensuring zero data loss.
+- **Exponential Backoff**: Downstream services can experience outages. The worker automatically retries failed deliveries up to your tenant's custom configuration (default 3-5 times), increasing the delay exponentially between each attempt.
+- **Dead Letter Queue (DLQ)**: If a webhook exhausts all of its retry attempts, it is caught and permanently logged as a terminal `failed` event. You can easily inspect and replay DLQ events via the built-in Dashboard.
 - **Docker Compose Orchestration**: The entire four-tier stack (PostgreSQL, Redis, Next.js Web App, and the Standalone Worker) is containerized and orchestrated via `docker-compose`, mirroring production execution exactly in the local environment.
 
 ## Deployment Architecture: The Vercel + Worker Split
@@ -43,7 +56,8 @@ Deploying this architecture requires understanding the difference between server
 The entire stack is containerized for zero-friction local development.
 
 1. Ensure you have Docker and Docker Compose installed.
-2. Run the following command to build and start the entire architecture:
+2. Ensure you have a `.env` file populated with your Clerk API Keys (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`).
+3. Run the following command to build and start the entire architecture:
 
 ```bash
 docker compose up --build
