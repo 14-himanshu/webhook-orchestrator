@@ -12,18 +12,19 @@ async function saveSettings(
 ): Promise<{ success: boolean; error?: string }> {
   'use server';
   try {
-    const { userId } = await auth();
+    const { userId, orgId } = await auth();
     if (!userId) return { success: false, error: 'Unauthorized' };
+    const tenantId = orgId || userId;
 
     const slackUrl = (formData.get('slackUrl') as string) || '';
     const discordUrl = (formData.get('discordUrl') as string) || '';
     const maxRetries = parseInt(formData.get('maxRetries') as string, 10) || 3;
     const webhookSecret = (formData.get('webhookSecret') as string) || '';
 
-    await prisma.userSettings.upsert({
-      where: { userId },
+    await prisma.tenantSettings.upsert({
+      where: { tenantId },
       update: { slackUrl, discordUrl, maxRetries, webhookSecret },
-      create: { userId, slackUrl, discordUrl, maxRetries, webhookSecret },
+      create: { tenantId, slackUrl, discordUrl, maxRetries, webhookSecret },
     });
 
     return { success: true };
@@ -34,14 +35,15 @@ async function saveSettings(
 }
 
 export default async function SettingsPage() {
-  const { userId } = await auth();
+  const { userId, orgId } = await auth();
 
   if (!userId) {
     return null;
   }
+  const tenantId = orgId || userId;
 
-  const settings = await prisma.userSettings.findUnique({
-    where: { userId },
+  const settings = await prisma.tenantSettings.findUnique({
+    where: { tenantId },
   }) || {
     slackUrl: '',
     discordUrl: '',

@@ -11,40 +11,44 @@ datasource db {
   provider = "postgresql"
 }
 
-model WebhookLog {
+model Event {
   id          String   @id @default(uuid())
-  jobId       String
+  jobId       String   @unique
   targetUrl   String
   payload     Json
-  deliveredAt DateTime @default(now())
-  userId      String   @default("anonymous")
+  status      String   @default("processing") // "processing", "completed", "failed"
+  tenantId    String   @default("anonymous")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  @@index([userId])
-  @@index([jobId])
-  @@index([userId, deliveredAt])
+  attempts    MessageAttempt[]
+
+  @@index([tenantId])
+  @@index([tenantId, status])
 }
 
-model DeadLetterQueue {
-  id          String   @id @default(uuid())
-  jobId       String
-  targetUrl   String
-  payload     Json
-  failedAt    DateTime @default(now())
-  errorReason String
-  userId      String   @default("anonymous")
+model MessageAttempt {
+  id              String   @id @default(uuid())
+  eventId         String
+  attemptNumber   Int
+  status          String   // "success", "failed"
+  httpStatus      Int?
+  errorReason     String?
+  latencyMs       Int?
+  createdAt       DateTime @default(now())
 
-  @@index([userId])
-  @@index([jobId])
-  @@index([userId, failedAt])
+  event           Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  @@index([eventId])
 }
 
-
-model UserSettings {
-  userId        String   @id
-  slackUrl      String?
-  discordUrl    String?
-  maxRetries    Int      @default(3)
-  webhookSecret String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model TenantSettings {
+  tenantId        String   @id
+  slackUrl        String?
+  discordUrl      String?
+  maxRetries      Int      @default(3)
+  webhookSecret   String?
+  secondarySecret String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

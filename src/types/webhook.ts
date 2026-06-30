@@ -10,7 +10,7 @@ export interface DLQItem {
   payload: Prisma.JsonValue;
   failedAt: Date | string;
   errorReason: string;
-  userId: string;
+  tenantId: string;
 }
 
 export interface WebhookLogItem {
@@ -19,5 +19,5 @@ export interface WebhookLogItem {
   targetUrl: string;
   payload: Prisma.JsonValue;
   deliveredAt: Date | string;
-  userId: string;
+  tenantId: string;
 }

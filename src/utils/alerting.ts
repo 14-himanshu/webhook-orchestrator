@@ -4,7 +4,7 @@ interface AlertDetails {
   jobId: string;
   targetUrl: string;
   errorReason: string;
-  userId?: string;
+  tenantId?: string;
 }
 
 export async function sendCriticalAlert(details: AlertDetails): Promise<void> {
@@ -12,8 +12,8 @@ export async function sendCriticalAlert(details: AlertDetails): Promise<void> {
     let slackUrl = process.env.SLACK_WEBHOOK_URL;
     let discordUrl = process.env.DISCORD_WEBHOOK_URL;
 
-    if (details.userId && details.userId !== 'anonymous') {
-      const settings = await prisma.userSettings.findUnique({ where: { userId: details.userId } });
+    if (details.tenantId && details.tenantId !== 'anonymous') {
+      const settings = await prisma.tenantSettings.findUnique({ where: { tenantId: details.tenantId } });
       if (settings?.slackUrl) slackUrl = settings.slackUrl;
       if (settings?.discordUrl) discordUrl = settings.discordUrl;
     }

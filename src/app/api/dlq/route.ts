@@ -4,10 +4,11 @@ import { auth } from '@clerk/nextjs/server';
 
 export async function DELETE(request: Request) {
   try {
-    const { userId } = await auth();
+    const { userId, orgId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const tenantId = orgId || userId;
 
     const { searchParams } = new URL(request.url);
     const dlqId = searchParams.get('id');
@@ -16,7 +17,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'dlqId is required' }, { status: 400 });
     }
 
-    const dlqRecord = await prisma.deadLetterQueue.findUnique({
+    const dlqRecord = await prisma.event.findUnique({
       where: { id: dlqId },
     });
 
@@ -24,11 +25,11 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'DLQ record not found' }, { status: 404 });
     }
 
-    if (dlqRecord.userId !== userId) {
+    if (dlqRecord.tenantId !== tenantId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    await prisma.deadLetterQueue.delete({ where: { id: dlqId } });
+    await prisma.event.delete({ where: { id: dlqId } });
 
     return NextResponse.json({ success: true });
   } catch (error) {

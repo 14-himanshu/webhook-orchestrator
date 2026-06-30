@@ -4,6 +4,7 @@ import { CheckCircle2, ArrowLeft, Clock, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { auth } from '@clerk/nextjs/server';
 import ClientDate from '@/app/components/ClientDate';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,20 +15,25 @@ export default async function HistoryPage({
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
-  const { userId } = await auth();
-  if (!userId) return null;
+  const { userId, orgId } = await auth();
+
+  if (!userId) {
+    redirect("/sign-in");
+  }
+
+  const tenantId = orgId || userId;
 
   const params = await searchParams;
   const page = Math.max(0, parseInt(params.page || '0', 10));
 
   const [logs, total] = await Promise.all([
-    prisma.webhookLog.findMany({
-      where: { userId },
-      orderBy: { deliveredAt: 'desc' },
+    prisma.event.findMany({
+      where: { tenantId },
+      orderBy: { createdAt: 'desc' },
       skip: page * PAGE_SIZE,
       take: PAGE_SIZE,
     }),
-    prisma.webhookLog.count({ where: { userId } }),
+    prisma.event.count({ where: { tenantId } }),
   ]);
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -52,7 +58,7 @@ export default async function HistoryPage({
                   Delivery History
                 </h1>
                 <p className="text-zinc-400 font-medium text-sm mt-0.5">
-                  {total.toLocaleString()} successful webhook{total !== 1 ? 's' : ''} delivered
+                  {total.toLocaleString()} webhook event{total !== 1 ? 's' : ''} logged
                 </p>
               </div>
             </div>
@@ -66,9 +72,10 @@ export default async function HistoryPage({
               <tr>
                 <th scope="col" className="px-6 py-4">Job ID</th>
                 <th scope="col" className="px-6 py-4">Target URL</th>
+                <th scope="col" className="px-6 py-4">Status</th>
                 <th scope="col" className="px-6 py-4">
                   <span className="flex items-center gap-1.5">
-                    <Clock className="w-3 h-3" /> Delivered At
+                    <Clock className="w-3 h-3" /> Created At
                   </span>
                 </th>
               </tr>
@@ -79,8 +86,8 @@ export default async function HistoryPage({
                   <td colSpan={3} className="px-6 py-16 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <CheckCircle2 className="w-5 h-5 text-zinc-600 mb-3" />
-                      <p className="text-sm font-medium text-zinc-400">No deliveries yet</p>
-                      <p className="text-[11px] mt-1 text-zinc-600">Successfully delivered webhooks will appear here.</p>
+                      <p className="text-sm font-medium text-zinc-400">No events yet</p>
+                      <p className="text-[11px] mt-1 text-zinc-600">All webhook events will appear here.</p>
                     </div>
                   </td>
                 </tr>
@@ -103,8 +110,13 @@ export default async function HistoryPage({
                         <ExternalLink className="w-3 h-3 shrink-0 opacity-50" />
                       </a>
                     </td>
+                    <td className="px-6 py-4">
+                      {log.status === 'completed' && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Completed</span>}
+                      {log.status === 'failed' && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">Failed</span>}
+                      {log.status === 'processing' && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Processing</span>}
+                    </td>
                     <td className="px-6 py-4 text-[13px] text-zinc-400 whitespace-nowrap">
-                      <ClientDate date={log.deliveredAt} />
+                      <ClientDate date={log.createdAt} />
                     </td>
                   </tr>
                 ))

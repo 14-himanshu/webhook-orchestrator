@@ -14,13 +14,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'dlqId is required' }, { status: 400 });
     }
 
-    const { userId } = await auth();
+    const { userId, orgId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const tenantId = orgId || userId;
 
-    // Fetch the DLQ record
-    const dlqRecord = await prisma.deadLetterQueue.findUnique({
+    // Fetch the failed Event record
+    const dlqRecord = await prisma.event.findUnique({
       where: { id: dlqId },
     });
 
@@ -28,14 +29,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'DLQ record not found' }, { status: 404 });
     }
 
-    if (dlqRecord.userId !== userId) {
+    if (dlqRecord.tenantId !== tenantId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Fetch the user's per-tenant secret so the replayed signature matches
     // what ingestWebhook() will verify against. Without this, users with a
     // custom webhookSecret would always get a 401 on replay.
-    const settings = await prisma.userSettings.findUnique({ where: { userId } });
+    const settings = await prisma.tenantSettings.findUnique({ where: { tenantId } });
     const activeSecret = settings?.webhookSecret || DEFAULT_WEBHOOK_SECRET;
 
     // Prepare payload with replay idempotency flags
@@ -44,7 +45,7 @@ export async function POST(request: Request) {
       payload = {
         ...payload as object,
         _is_replay: true,
-        _original_failed_at: dlqRecord.failedAt.toISOString(),
+        _original_failed_at: dlqRecord.updatedAt.toISOString(),
       };
     }
 
@@ -60,13 +61,12 @@ export async function POST(request: Request) {
       url: dlqRecord.targetUrl,
       body: payload,
       signature: outgoingSignature,
-      userId: userId,
+      tenantId: tenantId,
     });
 
-    // Delete the record from DLQ only after successfully re-queuing
-    await prisma.deadLetterQueue.delete({
-      where: { id: dlqId },
-    });
+    // We do NOT delete the old event record because we want to preserve history.
+    // Instead, the new job will create a new Event record.
+    // (Optional: we could update the status to 'replayed', but 'failed' is fine for history).
 
     return NextResponse.json({ success: true, jobId: job.id, url: dlqRecord.targetUrl, body: payload });
   } catch (error) {

@@ -70,32 +70,51 @@ export default function ProcessingQueueClient({ initialJobs }: { initialJobs: an
     if (processingJobs.length === 0) return;
 
     const interval = setInterval(async () => {
-      for (const job of processingJobs) {
-        try {
-          const res = await fetch(`/api/job-status?id=${job.id}`);
-          if (!res.ok) continue;
-          const data = await res.json();
+      const jobIds = processingJobs.map(j => j.id);
+      
+      try {
+        const res = await fetch('/api/job-status/batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: jobIds }),
+        });
+        
+        if (!res.ok) return;
+        const data = await res.json();
+        
+        if (!data.results) return;
 
-          if (data.status === 'completed' || data.status === 'failed') {
-            setJobs(prev => prev.map(j => 
-              j.id === job.id ? { ...j, status: data.status } : j
-            ));
+        let needsRefresh = false;
 
-            if (data.status === 'completed') {
-              toast.success(`Job ${job.id} successfully delivered!`);
+        setJobs(prev => prev.map(j => {
+          const update = data.results[j.id];
+          if (!update) return j;
+          
+          if (j.status === 'processing' && (update.status === 'completed' || update.status === 'failed')) {
+            if (update.status === 'completed') {
+              toast.success(`Job ${j.id} successfully delivered!`);
             } else {
-              toast.error(`Job ${job.id} failed: ${data.errorReason || 'Unknown error'}`);
+              toast.error(`Job ${j.id} failed: ${update.errorReason || 'Unknown error'}`);
             }
+            
+            needsRefresh = true;
 
             // Clean up the job after showing the status for 2.5 seconds
             setTimeout(() => {
-              setJobs(prev => prev.filter(j => j.id !== job.id));
-              router.refresh(); // Sync the rest of the page (like metrics and DLQ table)
+              setJobs(currentJobs => currentJobs.filter(cj => cj.id !== j.id));
             }, 2500);
+
+            return { ...j, status: update.status };
           }
-        } catch (err) {
-          console.error('Failed to poll job status:', err);
+          return j;
+        }));
+
+        if (needsRefresh) {
+          router.refresh(); // Sync the rest of the page (metrics, DLQ) only when a job state changes
         }
+        
+      } catch (err) {
+        console.error('Failed to poll batch job status:', err);
       }
     }, 1000); // Poll every 1s
 

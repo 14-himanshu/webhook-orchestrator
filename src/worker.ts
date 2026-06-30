@@ -1,4 +1,4 @@
-import { Worker, Job } from 'bullmq';
+import { Worker, Job, DelayedError } from 'bullmq';
 import { sendCriticalAlert } from './utils/alerting';
 import Redis from 'ioredis';
 import * as http from 'http';
@@ -41,7 +41,8 @@ interface WebhookJobData {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   body: any;
   signature?: string;
-  userId?: string;
+  userId?: string; // Legacy
+  tenantId?: string;
 }
 
 console.log('Starting BullMQ worker for incoming-webhooks queue...');
@@ -49,7 +50,28 @@ console.log('Starting BullMQ worker for incoming-webhooks queue...');
 const worker = new Worker<WebhookJobData>(
   'incoming-webhooks',
   async (job: Job<WebhookJobData>) => {
-    const { url, body, signature } = job.data;
+    const { url, body, signature, userId, tenantId } = job.data;
+    const activeTenantId = tenantId || userId;
+    
+    // Per-user Rate Limiting (5 req/sec per user)
+    // Guarantees fair-share queueing and noisy neighbor protection
+    if (activeTenantId) {
+      const currentSecond = Math.floor(Date.now() / 1000);
+      const rateLimitKey = `worker-rate-limit:${activeTenantId}:${currentSecond}`;
+      // Need to cast connection to Redis if TypeScript complains, but connection is already typed or compatible.
+      const redisConn = connection instanceof Redis ? connection : new Redis(connection.port!, connection.host!);
+      
+      const count = await redisConn.incr(rateLimitKey);
+      if (count === 1) {
+        await redisConn.expire(rateLimitKey, 2);
+      }
+      
+      if (count > 5) {
+        console.warn(`[Job ${job.id}] Rate limited for tenant ${activeTenantId}. Delaying for 1s.`);
+        await job.moveToDelayed(Date.now() + 1000, job.token!);
+        throw new DelayedError();
+      }
+    }
     
     console.log(`[Job ${job.id} | Attempt ${job.attemptsMade + 1}] Processing webhook delivery to ${url}`);
 
@@ -63,34 +85,57 @@ const worker = new Worker<WebhookJobData>(
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    
+    const startTime = Date.now();
+    let responseStatus: number | null = null;
+    let responseError = '';
 
-    // Use native fetch API to send a POST request
-    const response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    }).finally(() => clearTimeout(timeoutId));
-
-    // Check the response status
-    if (!response.ok) {
-      // Throwing an error is how BullMQ knows to trigger the exponential backoff retries
-      // that are configured on the queue/job level.
-      throw new Error(`Target server responded with status: ${response.status} ${response.statusText}`);
+    try {
+      // Use native fetch API to send a POST request
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+      
+      responseStatus = response.status;
+      
+      if (!response.ok) {
+        responseError = `Status: ${response.status} ${response.statusText}`;
+        throw new Error(`Target server responded with status: ${response.status} ${response.statusText}`);
+      }
+      
+      console.log(`[Job ${job.id} | Attempt ${job.attemptsMade + 1}] Successfully delivered webhook to ${url}. Status: ${response.status}`);
+      return { status: response.status };
+    } catch (err: unknown) {
+      if (!responseError) responseError = err instanceof Error ? err.message : 'Unknown Error';
+      throw err;
+    } finally {
+      clearTimeout(timeoutId);
+      const latencyMs = Date.now() - startTime;
+      
+      if (job.id) {
+        // Find the event ID to link the attempt
+        const event = await prisma.event.findUnique({ where: { jobId: job.id }, select: { id: true } });
+        if (event) {
+          await prisma.messageAttempt.create({
+            data: {
+              eventId: event.id,
+              attemptNumber: job.attemptsMade + 1,
+              status: responseStatus && responseStatus >= 200 && responseStatus < 300 ? 'success' : 'failed',
+              httpStatus: responseStatus,
+              errorReason: responseError,
+              latencyMs
+            }
+          }).catch((e: Error) => console.error('Failed to log message attempt:', e));
+        }
+      }
     }
-
-    // If the request succeeds, log the success
-    console.log(`[Job ${job.id} | Attempt ${job.attemptsMade + 1}] Successfully delivered webhook to ${url}. Status: ${response.status}`);
-    return { status: response.status };
   },
   {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     connection: connection as any,
-    // Rate limiter: Max 10 jobs per second globally across all workers
-    limiter: {
-      max: 10,
-      duration: 1000,
-    },
   }
 );
 
@@ -101,13 +146,9 @@ worker.on('completed', async (job: Job) => {
   if (!job.id) return;
   
   try {
-    await prisma.webhookLog.create({
-      data: {
-        jobId: job.id,
-        targetUrl: job.data.url,
-        payload: job.data.body || {},
-        userId: job.data.userId || "anonymous",
-      },
+    await prisma.event.update({
+      where: { jobId: job.id },
+      data: { status: 'completed' },
     });
     console.log(`[Job ${job.id}] logged success to database.`);
   } catch (error) {
@@ -132,23 +173,18 @@ worker.on('failed', async (job: Job | undefined, err: Error) => {
     if (!job.id) return;
     
     try {
-      await prisma.deadLetterQueue.create({
-        data: {
-          jobId: job.id,
-          targetUrl: job.data.url,
-          payload: job.data.body || {},
-          errorReason: err.message,
-          userId: job.data.userId || "anonymous",
-        },
+      await prisma.event.update({
+        where: { jobId: job.id },
+        data: { status: 'failed' },
       });
-      console.log(`[Job ${job.id}] logged permanent failure to DeadLetterQueue.`);
+      console.log(`[Job ${job.id}] logged permanent failure to Event.`);
 
       // Send proactive critical alert
       await sendCriticalAlert({
         jobId: job.id,
         targetUrl: job.data.url,
         errorReason: err.message,
-        userId: job.data.userId,
+        tenantId: job.data.tenantId || job.data.userId,
       });
 
       // Clear the job from Redis to prevent memory leaks ONLY AFTER it's safely in Postgres
